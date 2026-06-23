@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Продолжи фразу — Хост</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f13;--surface:#1a1a22;--surface2:#23232f;--accent:#f5c842;--accent2:#ff6b6b;--text:#f0f0f5;--muted:#7a7a8c;--border:#2e2e3e;--r:16px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px 16px 40px}
+h1,h2,h3{font-family:'Unbounded','Arial Black',sans-serif}
+.screen{display:none;max-width:600px;margin:0 auto}
+.screen.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.logo{text-align:center;margin-bottom:32px}
+.logo h1{font-size:clamp(18px,5vw,26px);color:var(--accent)}
+.logo p{color:var(--muted);margin-top:6px;font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px;letter-spacing:.06em;text-transform:uppercase}
+input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:12px 14px;outline:none;transition:border-color .2s}
+textarea{resize:none;min-height:90px}
+input:focus,textarea:focus{border-color:var(--accent)}
+
+.btn{display:block;width:100%;background:var(--accent);border:none;border-radius:12px;color:#0f0f13;cursor:pointer;font-family:'Unbounded','Arial Black',sans-serif;font-size:13px;font-weight:700;padding:16px;text-align:center;transition:opacity .2s,transform .1s}
+.btn:hover{opacity:.9}.btn:active{transform:scale(.98)}
+.btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn+.btn{margin-top:10px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+.phase-badge{background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;margin-bottom:16px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.round-title{font-size:clamp(16px,4vw,22px);margin-bottom:6px;line-height:1.3}
+.round-sub{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.5}
+
+/* QR */
+.qr-wrap{text-align:center;padding:8px 0 16px}
+.qr-wrap img{border-radius:12px;max-width:200px}
+.join-url{font-size:13px;color:var(--accent);word-break:break-all;margin-top:8px;text-align:center}
+
+/* PLAYERS LOBBY */
+.player-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:6px 14px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}
+.chip-score{color:var(--accent);font-family:'Unbounded','Arial Black',sans-serif;font-size:12px}
+.waiting{color:var(--muted);font-size:14px;font-style:italic}
+
+/* PHRASE BOX */
+.phrase-box{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 12px 12px 0;font-size:16px;font-style:italic;padding:14px 18px;margin-bottom:20px;line-height:1.6}
+
+/* SCOREBOARD */
+.scoreboard{display:grid;gap:8px;margin-bottom:16px}
+.score-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;padding:12px 16px;gap:12px}
+.score-row.leader{border-color:var(--accent)}
+.score-row .rank{font-size:11px;color:var(--muted);width:22px}
+.score-row .name{flex:1;font-weight:500}
+.score-row .pts{font-family:'Unbounded','Arial Black',sans-serif;font-size:20px;color:var(--accent)}
+.score-row .pts span{font-size:11px;color:var(--muted);margin-left:2px}
+
+/* STATUS BAR */
+.status-bar{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+
+/* RESULT ROWS */
+.result-row{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.ans-text{font-size:15px;margin-bottom:8px;line-height:1.5}
+.result-footer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{background:var(--surface2);border-radius:6px;font-size:12px;padding:3px 8px;color:var(--muted)}
+.badge.gold{background:#272200;color:var(--accent)}
+.badge.who{background:#1a2a1a;color:#7fcf7f}
+
+/* PODIUM */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:24px 0}
+.podium-slot{flex:1;max-width:130px;text-align:center}
+.podium-bar{border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.podium-slot:nth-child(1) .podium-bar{height:80px;background:#9e9e9e}
+.podium-slot:nth-child(2) .podium-bar{height:120px;background:var(--accent)}
+.podium-slot:nth-child(3) .podium-bar{height:60px;background:#cd7f32}
+.podium-name{margin-top:7px;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium-pts{font-size:12px;color:var(--muted)}
+
+hr{border:none;border-top:1px solid var(--border);margin:18px 0}
+.sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+
+/* ROUNDS INPUT */
+.rounds-row{display:flex;align-items:center;gap:12px}
+.rounds-row input{width:80px}
+</style>
+</head>
+<body>
+
+<!-- LOBBY -->
+<div id="s-lobby" class="screen active">
+  <div class="logo">
+    <h1>💬 Продолжи фразу</h1>
+    <p>Экран хоста</p>
+  </div>
+  <div class="card" id="qr-card" style="display:none">
+    <label>Сканируй QR или перейди по ссылке</label>
+    <div class="qr-wrap">
+      <img id="qr-img" src="" alt="QR">
+      <div class="join-url" id="join-url"></div>
+    </div>
+  </div>
+  <div class="card">
+    <label>Игроки в комнате</label>
+    <div id="lobby-players"><p class="waiting">Ждём игроков…</p></div>
+  </div>
+  <div class="card">
+    <label>Количество кругов</label>
+    <div class="rounds-row">
+      <input type="number" id="rounds-input" value="2" min="1" max="10">
+      <span style="color:var(--muted);font-size:13px">каждый задаёт по фразе в каждом круге</span>
+    </div>
+  </div>
+  <button class="btn" id="start-btn" onclick="hostStart()" disabled>▶ Начать игру</button>
+</div>
+
+<!-- PHRASE SETTER -->
+<div id="s-phrase" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="ph-label"></span></div>
+  <h2 class="round-title" id="ph-title"></h2>
+  <p class="round-sub">Задающий вводит фразу на своём телефоне</p>
+  <div class="status-bar"><div class="status-dot"></div><span id="ph-status">Ждём фразу…</span></div>
+  <div class="scoreboard" id="ph-board"></div>
+</div>
+
+<!-- ANSWERING -->
+<div id="s-answering" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="ans-label"></span></div>
+  <h2 class="round-title">Все пишут продолжения</h2>
+  <div class="phrase-box" id="ans-phrase"></div>
+  <div class="status-bar"><div class="status-dot"></div><span id="ans-status"></span></div>
+  <p class="round-sub" id="ans-queue-info"></p>
+</div>
+
+<!-- VOTING -->
+<div id="s-voting" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="vt-label"></span></div>
+  <h2 class="round-title">Голосование</h2>
+  <div class="phrase-box" id="vt-phrase"></div>
+  <div class="status-bar"><div class="status-dot"></div><span id="vt-status"></span></div>
+</div>
+
+<!-- RESULTS -->
+<div id="s-results" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="res-label"></span></div>
+  <h2 class="round-title">Итоги раунда</h2>
+  <div id="res-list"></div>
+  <hr>
+  <p class="sec-title">Текущий счёт</p>
+  <div class="scoreboard" id="res-board"></div>
+  <button class="btn" onclick="hostNext()">Продолжить →</button>
+</div>
+
+<!-- FINAL -->
+<div id="s-final" class="screen">
+  <div style="text-align:center;margin-bottom:8px">
+    <div style="font-size:52px">🏆</div>
+    <h2 class="round-title" style="margin-top:10px" id="fin-winner"></h2>
+    <p class="round-sub">Игра завершена!</p>
+  </div>
+  <div class="podium" id="podium"></div>
+  <div id="fin-list"></div>
+  <button class="btn" onclick="location.reload()">🔄 Новая игра</button>
+</div>
+
+<script>
+const WS_URL = location.protocol === 'https:' ? `wss://${location.host}` : `ws://${location.host}`;
+let ws, roomId, players = [];
+
+async function init() {
+  // Create room
+  const res = await fetch('/api/create-room', { method: 'POST' });
+  const data = await res.json();
+  roomId = data.roomId;
+
+  document.getElementById('qr-img').src = data.qr;
+  document.getElementById('join-url').textContent = data.joinUrl;
+  document.getElementById('qr-card').style.display = 'block';
+
+  connectWS();
+}
+
+function connectWS() {
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'host:join', payload: { roomId } }));
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleMsg(msg);
+  };
+  ws.onclose = () => {
+    setTimeout(connectWS, 2000);
+  };
+}
+
+function handleMsg(msg) {
+  const { type, payload } = msg;
+
+  if (type === 'host:joined') {
+    players = payload.players;
+    renderLobby();
+  }
+
+  else if (type === 'room:players') {
+    players = payload.players;
+    renderLobby();
+  }
+
+  else if (type === 'game:start') {
+    players = payload.players;
+    showPhraseWait(payload);
+  }
+
+  else if (type === 'game:phrase') {
+    setText('ans-label', `Круг ${payload.round} / ${payload.totalRounds}`);
+    setText('ans-phrase', `«${payload.phrase}»`);
+    setText('ans-status', `Осталось ответить: ${payload.answerQueue.length}`);
+    setText('ans-queue-info', '');
+    go('s-answering');
+  }
+
+  else if (type === 'host:answer_received') {
+    setText('ans-status', `Осталось ответить: ${payload.remaining}`);
+  }
+
+  else if (type === 'game:voting') {
+    setText('vt-label', document.getElementById('ans-label').textContent);
+    setText('vt-phrase', `«${payload.answers.length > 0 ? document.getElementById('ans-phrase').textContent.replace(/^«|»$/g,'') : ''}»`);
+    setText('vt-status', `Осталось проголосовать: ${payload.voteQueue.length}`);
+    go('s-voting');
+  }
+
+  else if (type === 'host:vote_received') {
+    setText('vt-status', `Осталось проголосовать: ${payload.remaining}`);
+  }
+
+  else if (type === 'game:results') {
+    players = payload.players;
+    showResults(payload);
+  }
+
+  else if (type === 'game:next_turn') {
+    players = payload.players;
+    showPhraseWait(payload);
+  }
+
+  else if (type === 'game:final') {
+    players = payload.players;
+    showFinal();
+  }
+}
+
+function renderLobby() {
+  const el = document.getElementById('lobby-players');
+  if (players.length === 0) {
+    el.innerHTML = '<p class="waiting">Ждём игроков… Пусть сканируют QR!</p>';
+  } else {
+    el.innerHTML = `<div class="player-chips">${players.map(p =>
+      `<div class="chip">👤 ${esc(p.name)}</div>`).join('')}</div>`;
+  }
+  document.getElementById('start-btn').disabled = players.length < 2;
+}
+
+function showPhraseWait(payload) {
+  const ph = `Круг ${payload.round} / ${payload.totalRounds}`;
+  setText('ph-label', ph);
+  setText('ph-title', `${payload.setter.name} задаёт фразу`);
+  setText('ph-status', 'Ждём фразу от задающего…');
+  renderBoard('ph-board');
+  go('s-phrase');
+}
+
+function showResults(payload) {
+  const res = payload.results;
+  setText('res-label', `Круг ${payload.round} / ${payload.totalRounds}`);
+  document.getElementById('res-list').innerHTML = res.map(r => {
+    let badges = `<span class="badge">${r.votes} голос${pl(r.votes)}</span>`;
+    if (r.bonus) badges += `<span class="badge gold">★ Лучший +1</span>`;
+    badges += `<span class="badge who">✍️ ${esc(r.author)}</span>`;
+    return `<div class="result-row"><div class="ans-text">${esc(r.text)}</div><div class="result-footer">${badges}</div></div>`;
+  }).join('');
+  renderBoard('res-board');
+  go('s-results');
+}
+
+function showFinal() {
+  const sorted = [...players].sort((a,b) => b.score - a.score);
+  setText('fin-winner', `🥇 ${sorted[0].name} победил!`);
+  const medals = ['🥈','🥇','🥉'];
+  const slots = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
+  document.getElementById('podium').innerHTML = slots.map((p,i) => `
+    <div class="podium-slot">
+      <div class="podium-bar">${medals[i]}</div>
+      <div class="podium-name">${esc(p.name)}</div>
+      <div class="podium-pts">${p.score} очков</div>
+    </div>`).join('');
+  const emojis = ['🥇','🥈','🥉'];
+  document.getElementById('fin-list').innerHTML = sorted.map((p,i) => `
+    <div class="score-row ${i===0?'leader':''}">
+      <div class="rank">${emojis[i]||`${i+1}.`}</div>
+      <div class="name">${esc(p.name)}</div>
+      <div class="pts">${p.score}<span>очков</span></div>
+    </div>`).join('');
+  go('s-final');
+}
+
+function renderBoard(id) {
+  const sorted = [...players].sort((a,b) => b.score - a.score);
+  const max = sorted[0]?.score ?? 0;
+  document.getElementById(id).innerHTML = sorted.map((p,i) => `
+    <div class="score-row ${p.score===max&&max>0?'leader':''}">
+      <div class="rank">#${i+1}</div>
+      <div class="name">${esc(p.name)}</div>
+      <div class="pts">${p.score}<span>очков</span></div>
+    </div>`).join('');
+}
+
+function hostStart() {
+  const rounds = parseInt(document.getElementById('rounds-input').value) || 2;
+  ws.send(JSON.stringify({ type: 'host:start', payload: { totalRounds: rounds } }));
+}
+
+function hostNext() {
+  ws.send(JSON.stringify({ type: 'host:next', payload: {} }));
+}
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setText(id, val) { document.getElementById(id).textContent = val; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function pl(n) { if(n%10===1&&n%100!==11)return''; if([2,3,4].includes(n%10)&&![12,13,14].includes(n%100))return'а'; return'ов'; }
+
+init();
+</script>
+</body>
+</html>

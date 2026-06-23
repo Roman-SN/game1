@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Продолжи фразу — Игрок</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f0f13;--surface:#1a1a22;--surface2:#23232f;--accent:#f5c842;--accent2:#ff6b6b;--text:#f0f0f5;--muted:#7a7a8c;--border:#2e2e3e;--r:16px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px 16px 48px}
+h1,h2,h3{font-family:'Unbounded','Arial Black',sans-serif}
+.screen{display:none;max-width:480px;margin:0 auto}
+.screen.active{display:block;animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.logo{text-align:center;margin-bottom:28px}
+.logo h1{font-size:22px;color:var(--accent)}
+.logo p{color:var(--muted);font-size:13px;margin-top:5px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px;letter-spacing:.06em;text-transform:uppercase}
+input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;padding:13px 14px;outline:none;transition:border-color .2s}
+textarea{resize:none;min-height:100px;font-size:15px}
+input:focus,textarea:focus{border-color:var(--accent)}
+
+.btn{display:block;width:100%;background:var(--accent);border:none;border-radius:12px;color:#0f0f13;cursor:pointer;font-family:'Unbounded','Arial Black',sans-serif;font-size:13px;font-weight:700;padding:16px;text-align:center;transition:opacity .2s,transform .1s}
+.btn:hover{opacity:.9}.btn:active{transform:scale(.98)}
+.btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn+.btn{margin-top:10px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+.phase-badge{background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;margin-bottom:16px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.round-title{font-size:clamp(16px,5vw,22px);margin-bottom:6px;line-height:1.3}
+.round-sub{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.5}
+
+.phrase-box{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 12px 12px 0;font-size:16px;font-style:italic;padding:14px 18px;margin-bottom:20px;line-height:1.6}
+
+/* WAITING ANIMATION */
+.wait-icon{font-size:52px;text-align:center;margin:20px 0;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.wait-text{text-align:center;color:var(--muted);font-size:15px;line-height:1.6}
+
+/* TIMER */
+.timer-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.mini-timer{position:relative;width:50px;height:50px;flex-shrink:0}
+.mini-timer svg{position:absolute;top:0;left:0}
+.mini-timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Unbounded','Arial Black',sans-serif;font-size:14px;font-weight:700}
+
+/* VOICE INPUT */
+.voice-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.voice-row input{flex:1}
+.mic-btn{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
+.mic-btn.listening{background:#2a0a0a;border-color:var(--accent2);animation:mic-pulse 1s infinite}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.4)}50%{box-shadow:0 0 0 8px rgba(255,107,107,0)}}
+.mic-status{font-size:13px;color:var(--muted);min-height:18px}
+.mic-status.ok{color:#7fcf7f}.mic-status.err{color:var(--accent2)}.mic-status.listening{color:var(--accent)}
+
+/* VOTE CARDS */
+.vote-grid{display:grid;gap:10px;margin-bottom:18px}
+.vote-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;padding:14px 16px;font-size:15px;line-height:1.5;text-align:left;color:var(--text);font-family:inherit;width:100%;transition:border-color .2s,background .2s}
+.vote-card:hover{border-color:var(--accent);background:var(--surface2)}
+.vote-card.selected{border-color:var(--accent);background:#272200}
+.vnum{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+
+.error-box{background:#2a0a0a;border:1px solid var(--accent2);border-radius:12px;padding:14px;color:var(--accent2);font-size:14px;margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+
+<!-- JOIN -->
+<div id="s-join" class="screen active">
+  <div class="logo">
+    <h1>💬 Продолжи фразу</h1>
+    <p id="room-label">Подключение…</p>
+  </div>
+  <div id="error-box" class="error-box"></div>
+  <div class="card">
+    <label>Твоё имя</label>
+    <div class="voice-row">
+      <input type="text" id="name-input" placeholder="Введи имя" maxlength="16"
+        onkeydown="if(event.key==='Enter')joinGame()">
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Назвать имя голосом">
+        <span id="mic-icon">🎤</span>
+      </button>
+    </div>
+    <div class="mic-status" id="mic-status"></div>
+  </div>
+  <button class="btn" onclick="joinGame()">Войти в комнату →</button>
+</div>
+
+<!-- LOBBY WAIT -->
+<div id="s-lobby" class="screen">
+  <div class="logo"><h1>💬 Продолжи фразу</h1></div>
+  <div class="wait-icon">🕐</div>
+  <p class="wait-text">Ждём пока хост начнёт игру…<br>Можешь показать другу QR-код!</p>
+  <div class="card" style="margin-top:20px">
+    <label>Игроки в комнате</label>
+    <div id="lobby-players" style="color:var(--muted);font-size:14px">Загружаем…</div>
+  </div>
+</div>
+
+<!-- WAIT FOR PHRASE (not setter) -->
+<div id="s-wait-phrase" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="wp-label"></span></div>
+  <div class="wait-icon">✍️</div>
+  <h2 class="round-title" id="wp-title"></h2>
+  <p class="wait-text">Жди — задающий придумывает фразу</p>
+</div>
+
+<!-- ENTER PHRASE (setter) -->
+<div id="s-enter-phrase" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="ep-label"></span></div>
+  <h2 class="round-title">Твоя очередь задавать!</h2>
+  <p class="round-sub">Придумай начало фразы — остальные продолжат</p>
+  <div class="card">
+    <label>Начало фразы</label>
+    <textarea id="phrase-ta" placeholder="Например: «Мам, у меня тут небольшая проблема…»"></textarea>
+  </div>
+  <button class="btn" onclick="submitPhrase()">Отправить фразу →</button>
+</div>
+
+<!-- WAIT FOR ANSWER (not your turn yet) -->
+<div id="s-wait-answer" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="wa-label"></span></div>
+  <div class="wait-icon">⏳</div>
+  <h2 class="round-title" id="wa-title">Подожди немного</h2>
+  <div class="phrase-box" id="wa-phrase"></div>
+  <p class="wait-text" id="wa-sub">Другие игроки пишут свои ответы…</p>
+</div>
+
+<!-- ENTER ANSWER -->
+<div id="s-answer" class="screen">
+  <div class="timer-row">
+    <div class="phase-badge" style="margin-bottom:0"><span class="dot"></span><span id="ans-label"></span></div>
+    <div class="mini-timer">
+      <svg width="50" height="50" viewBox="0 0 50 50" style="transform:rotate(-90deg)">
+        <circle cx="25" cy="25" r="20" fill="none" stroke="#23232f" stroke-width="5"/>
+        <circle id="t-ring" cx="25" cy="25" r="20" fill="none" stroke="#f5c842" stroke-width="5"
+          stroke-linecap="round" stroke-dasharray="125.7" stroke-dashoffset="0"
+          style="transition:stroke-dashoffset .6s linear,stroke .4s"/>
+      </svg>
+      <div class="mini-timer-num" id="t-num">35</div>
+    </div>
+  </div>
+  <h2 class="round-title">Твоё продолжение!</h2>
+  <p class="round-sub">Остальные не видят твой ответ</p>
+  <div class="phrase-box" id="ans-phrase"></div>
+  <div class="card">
+    <label>Продолжи фразу</label>
+    <textarea id="answer-ta" placeholder="Продолжи фразу..."></textarea>
+  </div>
+  <button class="btn" onclick="submitAnswer()">Отправить ✓</button>
+</div>
+
+<!-- WAIT FOR VOTING -->
+<div id="s-wait-vote" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="wv-label"></span></div>
+  <div class="wait-icon">🗳️</div>
+  <h2 class="round-title" id="wv-title">Скоро голосование!</h2>
+  <p class="wait-text" id="wv-sub">Другие ещё пишут свои ответы…</p>
+</div>
+
+<!-- VOTE -->
+<div id="s-vote" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="vt-label"></span></div>
+  <h2 class="round-title" id="vt-title">Голосуй!</h2>
+  <p class="round-sub" id="vt-sub">Выбери самый смешной вариант</p>
+  <div class="phrase-box" id="vt-phrase"></div>
+  <div class="vote-grid" id="vt-grid"></div>
+  <button class="btn" id="vt-confirm" onclick="submitVote()" disabled>Подтвердить →</button>
+</div>
+
+<!-- WAIT AFTER VOTE -->
+<div id="s-voted" class="screen">
+  <div class="phase-badge"><span class="dot"></span></div>
+  <div class="wait-icon">✅</div>
+  <h2 class="round-title">Голос принят!</h2>
+  <p class="wait-text">Ждём остальных…</p>
+</div>
+
+<!-- WAIT FOR NEXT ROUND -->
+<div id="s-wait-next" class="screen">
+  <div class="phase-badge"><span class="dot"></span><span id="wn-label"></span></div>
+  <div class="wait-icon">📊</div>
+  <h2 class="round-title">Итоги раунда</h2>
+  <p class="wait-text">Смотри на экран хоста!</p>
+</div>
+
+<!-- FINAL -->
+<div id="s-final" class="screen">
+  <div style="text-align:center;margin:20px 0">
+    <div style="font-size:52px">🏆</div>
+    <h2 class="round-title" style="margin-top:10px" id="fin-title">Игра завершена!</h2>
+    <p class="round-sub" id="fin-sub"></p>
+  </div>
+  <button class="btn" onclick="location.reload()">🔄 Сыграть снова</button>
+</div>
+
+<script>
+// ── INIT ─────────────────────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const roomId = params.get('room');
+const SECS = 35;
+const CIRC = 2 * Math.PI * 20; // r=20 → 125.66
+
+let ws, myId, myName, timerInt;
+let currentAnswers = [], selectedVoteIdx = null;
+let currentPhrase = '';
+
+if (!roomId) {
+  showError('Неверная ссылка — нет ID комнаты');
+} else {
+  document.getElementById('room-label').textContent = `Комната: ${roomId}`;
+}
+
+// ── VOICE ────────────────────────────────────────────────────────
+let _recognition = null, _micListening = false;
+
+function toggleMic() {
+  if (_micListening) { stopMic(); return; }
+  startMic();
+}
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { setMicStatus('Не поддерживается в этом браузере', 'err'); return; }
+  _recognition = new SR();
+  _recognition.lang = 'ru-RU';
+  _recognition.interimResults = false;
+  _recognition.onstart = () => {
+    _micListening = true;
+    document.getElementById('mic-btn').classList.add('listening');
+    document.getElementById('mic-icon').textContent = '⏹';
+    setMicStatus('Слушаю… скажи имя', 'listening');
+  };
+  _recognition.onresult = (e) => {
+    const name = e.results[0][0].transcript.trim();
+    document.getElementById('name-input').value = name.charAt(0).toUpperCase() + name.slice(1);
+    stopMic();
+    setMicStatus(`✓ Услышал: "${name}"`, 'ok');
+  };
+  _recognition.onerror = (e) => {
+    stopMic();
+    const msgs = { 'not-allowed': 'Нет доступа к микрофону', 'no-speech': 'Ничего не услышал', 'network': 'Ошибка сети' };
+    setMicStatus(msgs[e.error] || `Ошибка: ${e.error}`, 'err');
+  };
+  _recognition.onend = () => stopMic();
+  _recognition.start();
+}
+function stopMic() {
+  _micListening = false;
+  document.getElementById('mic-btn').classList.remove('listening');
+  document.getElementById('mic-icon').textContent = '🎤';
+  if (_recognition) { try { _recognition.stop(); } catch(e){} _recognition = null; }
+}
+function setMicStatus(msg, cls='') {
+  const el = document.getElementById('mic-status');
+  el.textContent = msg;
+  el.className = 'mic-status' + (cls ? ' '+cls : '');
+}
+
+// ── JOIN ─────────────────────────────────────────────────────────
+function joinGame() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) { setMicStatus('Введи имя!', 'err'); return; }
+  myName = name;
+  connectWS(name);
+}
+
+function connectWS(name) {
+  const WS_URL = location.protocol === 'https:' ? `wss://${location.host}` : `ws://${location.host}`;
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'player:join', payload: { roomId, name } }));
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    handleMsg(msg);
+  };
+  ws.onclose = () => {
+    // Try reconnect after short delay
+    setTimeout(() => connectWS(myName), 2000);
+  };
+}
+
+// ── MESSAGE HANDLER ───────────────────────────────────────────────
+function handleMsg(msg) {
+  const { type, payload } = msg;
+
+  if (type === 'error') {
+    showError(payload.message);
+    return;
+  }
+
+  if (type === 'player:joined') {
+    myId = payload.id;
+    go('s-lobby');
+  }
+
+  else if (type === 'room:players') {
+    const el = document.getElementById('lobby-players');
+    el.innerHTML = payload.players.map(p => `• ${esc(p.name)}`).join('<br>');
+  }
+
+  else if (type === 'game:start') {
+    handleNewTurn(payload);
+  }
+
+  else if (type === 'game:next_turn') {
+    handleNewTurn(payload);
+  }
+
+  else if (type === 'game:phrase') {
+    currentPhrase = payload.phrase;
+    const amIInQueue = payload.answerQueue.includes(myId);
+    // Setter doesn't answer
+    if (!amIInQueue) {
+      // I'm the setter or excluded — wait for voting
+      setText('wa-label', `Круг ${payload.round} / ${payload.totalRounds}`);
+      setText('wa-title', 'Жди пока все напишут');
+      setText('wa-phrase', `«${payload.phrase}»`);
+      setText('wa-sub', 'Остальные игроки пишут продолжения…');
+      go('s-wait-answer');
+    }
+    // If I'm in the queue, wait for my turn notification
+    else {
+      setText('wa-label', `Круг ${payload.round} / ${payload.totalRounds}`);
+      setText('wa-title', 'Сейчас твоя очередь!');
+      setText('wa-phrase', `«${payload.phrase}»`);
+      setText('wa-sub', 'Подготовься…');
+      go('s-wait-answer');
+    }
+  }
+
+  else if (type === 'game:your_turn_answer') {
+    if (payload.currentAnswererId === myId) {
+      // My turn to answer!
+      setText('ans-label', document.getElementById('wa-label')?.textContent || '');
+      setText('ans-phrase', `«${currentPhrase}»`);
+      document.getElementById('answer-ta').value = '';
+      go('s-answer');
+      startAnswerTimer();
+    } else {
+      // Someone else's turn — just wait
+      if (document.getElementById('s-answer').classList.contains('active')) {
+        // Already answered, stay on wait
+      }
+      setText('wa-sub', `Ещё ${payload.remaining} игрок(ов) пишут…`);
+    }
+  }
+
+  else if (type === 'answer:ok') {
+    clearTimer();
+    setText('wv-label', '');
+    setText('wv-title', 'Ответ принят! ✓');
+    setText('wv-sub', 'Ждём остальных игроков…');
+    go('s-wait-vote');
+  }
+
+  else if (type === 'game:voting') {
+    currentAnswers = payload.answers;
+    // Check if it's my turn to vote
+    if (payload.voteQueue[0] === myId) {
+      showVoteScreen(payload);
+    } else {
+      setText('wv-label', '');
+      setText('wv-title', 'Скоро голосование!');
+      setText('wv-sub', 'Жди своей очереди…');
+      go('s-wait-vote');
+    }
+  }
+
+  else if (type === 'game:your_turn_vote') {
+    if (payload.currentVoterId === myId) {
+      showVoteScreen({ answers: currentAnswers });
+    }
+    // else: just wait
+  }
+
+  else if (type === 'vote:ok') {
+    go('s-voted');
+  }
+
+  else if (type === 'game:results') {
+    setText('wn-label', `Круг ${payload.round} / ${payload.totalRounds}`);
+    go('s-wait-next');
+  }
+
+  else if (type === 'game:final') {
+    const sorted = [...payload.players].sort((a,b) => b.score - a.score);
+    const me = payload.players.find(p => p.id === myId);
+    const myRank = sorted.findIndex(p => p.id === myId) + 1;
+    const medals = ['🥇','🥈','🥉'];
+    setText('fin-title', myRank === 1 ? '🏆 Ты победил!' : `Игра завершена!`);
+    setText('fin-sub', `Твоё место: ${medals[myRank-1]||myRank} • ${me?.score ?? 0} очков`);
+    go('s-final');
+  }
+}
+
+// ── GAME ACTIONS ─────────────────────────────────────────────────
+function handleNewTurn(payload) {
+  const label = `Круг ${payload.round} / ${payload.totalRounds}`;
+  const isSetter = payload.setter.id === myId;
+  if (isSetter) {
+    setText('ep-label', label);
+    document.getElementById('phrase-ta').value = '';
+    go('s-enter-phrase');
+  } else {
+    setText('wp-label', label);
+    setText('wp-title', `${payload.setter.name} придумывает фразу…`);
+    go('s-wait-phrase');
+  }
+}
+
+function submitPhrase() {
+  const phrase = document.getElementById('phrase-ta').value.trim();
+  if (phrase.length < 3) { alert('Фраза слишком короткая!'); return; }
+  ws.send(JSON.stringify({ type: 'game:phrase', payload: { phrase } }));
+}
+
+function submitAnswer() {
+  const text = document.getElementById('answer-ta').value.trim();
+  if (!text) { alert('Напиши что-нибудь!'); return; }
+  clearTimer();
+  ws.send(JSON.stringify({ type: 'game:answer', payload: { text } }));
+}
+
+function showVoteScreen(payload) {
+  const isSetter = document.getElementById('ep-label')?.textContent?.length > 0; // rough check
+  setText('vt-label', '');
+  setText('vt-title', 'Голосуй! 🗳️');
+  setText('vt-sub', 'Выбери самое смешное продолжение');
+  setText('vt-phrase', `«${currentPhrase}»`);
+
+  selectedVoteIdx = null;
+  document.getElementById('vt-confirm').disabled = true;
+
+  const grid = document.getElementById('vt-grid');
+  grid.innerHTML = '';
+  (payload.answers || currentAnswers).forEach((ans) => {
+    const btn = document.createElement('button');
+    btn.className = 'vote-card';
+    btn.innerHTML = `<div class="vnum">Вариант ${ans.idx + 1}</div>${esc(ans.text)}`;
+    btn.onclick = () => {
+      document.querySelectorAll('.vote-card').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedVoteIdx = ans.idx;
+      document.getElementById('vt-confirm').disabled = false;
+    };
+    grid.appendChild(btn);
+  });
+  go('s-vote');
+}
+
+function submitVote() {
+  if (selectedVoteIdx === null) return;
+  ws.send(JSON.stringify({ type: 'game:vote', payload: { answerIdx: selectedVoteIdx } }));
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────
+function startAnswerTimer() {
+  let left = SECS;
+  updateTimer(left);
+  clearInterval(timerInt);
+  timerInt = setInterval(() => {
+    left--;
+    updateTimer(left);
+    if (left <= 0) {
+      clearInterval(timerInt);
+      const text = document.getElementById('answer-ta').value.trim();
+      ws.send(JSON.stringify({ type: 'game:answer', payload: { text: text || '(пропустил)' } }));
+    }
+  }, 1000);
+}
+
+function updateTimer(t) {
+  const ring = document.getElementById('t-ring');
+  const offset = CIRC * (1 - t / SECS);
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = t <= 10 ? '#ff6b6b' : t <= 20 ? '#f5a623' : '#f5c842';
+  document.getElementById('t-num').textContent = t;
+}
+
+function clearTimer() { clearInterval(timerInt); }
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setText(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = '⚠️ ' + msg;
+  box.style.display = 'block';
+}
+</script>
+</body>
+</html>
