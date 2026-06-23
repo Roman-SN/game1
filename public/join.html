@@ -3,118 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Продолжи фразу — Игрок</title>
+<title>Продолжи фразу</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0f0f13;--surface:#1a1a22;--surface2:#23232f;--accent:#f5c842;--accent2:#ff6b6b;--text:#f0f0f5;--muted:#7a7a8c;--border:#2e2e3e;--r:16px}
-body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:24px 16px 48px}
-h1,h2,h3{font-family:'Unbounded','Arial Black',sans-serif}
+:root{--bg:#0f0f13;--s:#1a1a22;--s2:#23232f;--a:#f5c842;--a2:#ff6b6b;--t:#f0f0f5;--m:#7a7a8c;--b:#2e2e3e;--r:16px}
+body{background:var(--bg);color:var(--t);font-family:'Inter',system-ui,sans-serif;min-height:100vh;padding:20px 16px 48px}
+h1,h2{font-family:'Unbounded','Arial Black',sans-serif}
 .screen{display:none;max-width:480px;margin:0 auto}
-.screen.active{display:block;animation:fadeIn .22s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.screen.active{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.logo{text-align:center;margin-bottom:28px}
-.logo h1{font-size:22px;color:var(--accent)}
-.logo p{color:var(--muted);font-size:13px;margin-top:5px}
+.logo{text-align:center;margin-bottom:24px}
+.logo h1{font-size:20px;color:var(--a)}
+.logo p{color:var(--m);font-size:12px;margin-top:4px}
 
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px;letter-spacing:.06em;text-transform:uppercase}
-input,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;padding:13px 14px;outline:none;transition:border-color .2s}
+.card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:12px}
+label{display:block;font-size:11px;color:var(--m);margin-bottom:7px;letter-spacing:.07em;text-transform:uppercase}
+input,textarea{width:100%;background:var(--bg);border:1px solid var(--b);border-radius:10px;color:var(--t);font-family:inherit;font-size:16px;padding:12px 13px;outline:none;transition:border-color .2s}
 textarea{resize:none;min-height:100px;font-size:15px}
-input:focus,textarea:focus{border-color:var(--accent)}
+input:focus,textarea:focus{border-color:var(--a)}
 
-.btn{display:block;width:100%;background:var(--accent);border:none;border-radius:12px;color:#0f0f13;cursor:pointer;font-family:'Unbounded','Arial Black',sans-serif;font-size:13px;font-weight:700;padding:16px;text-align:center;transition:opacity .2s,transform .1s}
+.btn{display:block;width:100%;background:var(--a);border:none;border-radius:12px;color:#0f0f13;cursor:pointer;font-family:'Unbounded','Arial Black',sans-serif;font-size:13px;font-weight:700;padding:15px;text-align:center;transition:opacity .2s,transform .1s}
 .btn:hover{opacity:.9}.btn:active{transform:scale(.98)}
-.btn.secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
-.btn+.btn{margin-top:10px}
-.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sec{background:var(--s2);color:var(--t);border:1px solid var(--b)}
+.btn+.btn{margin-top:9px}
+.btn:disabled{opacity:.32;cursor:not-allowed;transform:none}
 
-.phase-badge{background:var(--surface);border:1px solid var(--border);border-radius:100px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 12px;margin-bottom:16px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
+.badge{background:var(--s);border:1px solid var(--b);border-radius:100px;color:var(--m);display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:5px 11px;margin-bottom:14px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--a);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-.round-title{font-size:clamp(16px,5vw,22px);margin-bottom:6px;line-height:1.3}
-.round-sub{color:var(--muted);font-size:14px;margin-bottom:20px;line-height:1.5}
+.rtitle{font-size:clamp(16px,5vw,20px);margin-bottom:5px;line-height:1.3}
+.rsub{color:var(--m);font-size:13px;margin-bottom:18px;line-height:1.5}
 
-.phrase-box{background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 12px 12px 0;font-size:16px;font-style:italic;padding:14px 18px;margin-bottom:20px;line-height:1.6}
+.phrase-box{background:var(--s2);border-left:3px solid var(--a);border-radius:0 12px 12px 0;font-size:15px;font-style:italic;padding:13px 16px;margin-bottom:18px;line-height:1.6}
 
-/* WAITING ANIMATION */
-.wait-icon{font-size:52px;text-align:center;margin:20px 0;animation:bob 2s ease-in-out infinite}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.wait-text{text-align:center;color:var(--muted);font-size:15px;line-height:1.6}
+/* WAIT */
+.wait-icon{font-size:48px;text-align:center;margin:18px 0;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.wait-text{text-align:center;color:var(--m);font-size:14px;line-height:1.6}
 
 /* TIMER */
-.timer-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.mini-timer{position:relative;width:50px;height:50px;flex-shrink:0}
-.mini-timer svg{position:absolute;top:0;left:0}
-.mini-timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Unbounded','Arial Black',sans-serif;font-size:14px;font-weight:700}
+.timer-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mini-t{position:relative;width:50px;height:50px;flex-shrink:0}
+.mini-t svg{position:absolute;top:0;left:0}
+.mini-t-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Unbounded','Arial Black',sans-serif;font-size:14px;font-weight:700}
 
-/* VOICE INPUT */
-.voice-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+/* PROGRESS */
+.prog-wrap{background:var(--b);border-radius:100px;height:5px;margin:8px 0 14px;overflow:hidden}
+.prog-bar{background:var(--a);height:100%;border-radius:100px;transition:width .4s}
+
+/* VOTE */
+.vote-grid{display:grid;gap:9px;margin-bottom:16px}
+.vc{background:var(--s);border:1.5px solid var(--b);border-radius:11px;cursor:pointer;padding:13px 15px;font-size:14px;line-height:1.5;text-align:left;color:var(--t);font-family:inherit;width:100%;transition:border-color .2s,background .2s}
+.vc:hover{border-color:var(--a);background:var(--s2)}
+.vc.sel{border-color:var(--a);background:#211c00}
+.vnum{font-size:10px;color:var(--m);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+
+/* AVATAR */
+.av-preview{font-size:38px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:var(--s2);border-radius:12px;border:1px solid var(--b);margin-bottom:10px}
+.av-grid{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.av-btn{font-size:24px;width:42px;height:42px;background:var(--s2);border:1.5px solid var(--b);border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s}
+.av-btn:hover{border-color:var(--m)}
+.av-btn.sel{border-color:var(--a);background:#1e1a00}
+
+/* VOICE */
+.voice-row{display:flex;gap:7px;align-items:center}
 .voice-row input{flex:1}
-.mic-btn{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,border-color .2s}
-.mic-btn.listening{background:#2a0a0a;border-color:var(--accent2);animation:mic-pulse 1s infinite}
-@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.4)}50%{box-shadow:0 0 0 8px rgba(255,107,107,0)}}
-.mic-status{font-size:13px;color:var(--muted);min-height:18px}
-.mic-status.ok{color:#7fcf7f}.mic-status.err{color:var(--accent2)}.mic-status.listening{color:var(--accent)}
+.mic-btn{width:44px;height:44px;border-radius:11px;border:1.5px solid var(--b);background:var(--s2);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.mic-btn.on{background:#2a0808;border-color:var(--a2);animation:mp 1s infinite}
+@keyframes mp{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.35)}50%{box-shadow:0 0 0 7px rgba(255,107,107,0)}}
+.mic-st{font-size:12px;color:var(--m);margin-top:6px;min-height:16px}
+.mic-st.ok{color:#7fcf7f}.mic-st.err{color:var(--a2)}.mic-st.go{color:var(--a)}
 
-/* VOTE CARDS */
-.vote-grid{display:grid;gap:10px;margin-bottom:18px}
-.vote-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;padding:14px 16px;font-size:15px;line-height:1.5;text-align:left;color:var(--text);font-family:inherit;width:100%;transition:border-color .2s,background .2s}
-.vote-card:hover{border-color:var(--accent);background:var(--surface2)}
-.vote-card.selected{border-color:var(--accent);background:#272200}
-.vnum{font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.err-box{background:#200a0a;border:1px solid var(--a2);border-radius:11px;padding:13px;color:var(--a2);font-size:13px;margin-bottom:12px;display:none}
 
-.error-box{background:#2a0a0a;border:1px solid var(--accent2);border-radius:12px;padding:14px;color:var(--accent2);font-size:14px;margin-bottom:14px;display:none}
+/* SETTER BADGE */
+.setter-badge{background:#1e1a00;border:1px solid var(--a);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--a);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
 
 <!-- JOIN -->
 <div id="s-join" class="screen active">
-  <div class="logo">
-    <h1>💬 Продолжи фразу</h1>
-    <p id="room-label">Подключение…</p>
-  </div>
-  <div id="error-box" class="error-box"></div>
+  <div class="logo"><h1>💬 Продолжи фразу</h1><p id="room-label">Подключение…</p></div>
+  <div class="err-box" id="err-box"></div>
   <div class="card">
     <label>Твоё имя</label>
     <div class="voice-row">
-      <input type="text" id="name-input" placeholder="Введи имя" maxlength="16"
-        onkeydown="if(event.key==='Enter')joinGame()">
-      <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Назвать имя голосом">
-        <span id="mic-icon">🎤</span>
-      </button>
+      <input type="text" id="name-inp" placeholder="Введи имя" maxlength="16" onkeydown="if(event.key==='Enter')joinGame()">
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()"><span id="mic-icon">🎤</span></button>
     </div>
-    <div class="mic-status" id="mic-status"></div>
+    <div class="mic-st" id="mic-st"></div>
+  </div>
+  <div class="card">
+    <label>Выбери аватар</label>
+    <div class="av-preview" id="av-preview">😀</div>
+    <div class="av-grid" id="av-grid"></div>
   </div>
   <button class="btn" onclick="joinGame()">Войти в комнату →</button>
 </div>
 
-<!-- LOBBY WAIT -->
+<!-- LOBBY -->
 <div id="s-lobby" class="screen">
   <div class="logo"><h1>💬 Продолжи фразу</h1></div>
   <div class="wait-icon">🕐</div>
-  <p class="wait-text">Ждём пока хост начнёт игру…<br>Можешь показать другу QR-код!</p>
-  <div class="card" style="margin-top:20px">
-    <label>Игроки в комнате</label>
-    <div id="lobby-players" style="color:var(--muted);font-size:14px">Загружаем…</div>
+  <p class="wait-text">Ждём пока хост начнёт игру…</p>
+  <div class="card" style="margin-top:18px">
+    <label>Игроки</label>
+    <div id="lobby-pl" style="color:var(--m);font-size:13px">…</div>
   </div>
 </div>
 
-<!-- WAIT FOR PHRASE (not setter) -->
+<!-- WAIT FOR PHRASE -->
 <div id="s-wait-phrase" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="wp-label"></span></div>
+  <div class="badge"><span class="dot"></span><span id="wp-label"></span></div>
   <div class="wait-icon">✍️</div>
-  <h2 class="round-title" id="wp-title"></h2>
+  <h2 class="rtitle" id="wp-title"></h2>
   <p class="wait-text">Жди — задающий придумывает фразу</p>
 </div>
 
 <!-- ENTER PHRASE (setter) -->
 <div id="s-enter-phrase" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="ep-label"></span></div>
-  <h2 class="round-title">Твоя очередь задавать!</h2>
-  <p class="round-sub">Придумай начало фразы — остальные продолжат</p>
+  <div class="badge"><span class="dot"></span><span id="ep-label"></span></div>
+  <div class="setter-badge">👑 Ты задающий этого раунда!</div>
+  <h2 class="rtitle">Придумай начало фразы</h2>
+  <p class="rsub">Остальные продолжат её</p>
   <div class="card">
     <label>Начало фразы</label>
     <textarea id="phrase-ta" placeholder="Например: «Мам, у меня тут небольшая проблема…»"></textarea>
@@ -122,382 +136,384 @@ input:focus,textarea:focus{border-color:var(--accent)}
   <button class="btn" onclick="submitPhrase()">Отправить фразу →</button>
 </div>
 
-<!-- WAIT FOR ANSWER (not your turn yet) -->
-<div id="s-wait-answer" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="wa-label"></span></div>
-  <div class="wait-icon">⏳</div>
-  <h2 class="round-title" id="wa-title">Подожди немного</h2>
-  <div class="phrase-box" id="wa-phrase"></div>
-  <p class="wait-text" id="wa-sub">Другие игроки пишут свои ответы…</p>
-</div>
-
-<!-- ENTER ANSWER -->
+<!-- ANSWER (everyone at once) -->
 <div id="s-answer" class="screen">
   <div class="timer-row">
-    <div class="phase-badge" style="margin-bottom:0"><span class="dot"></span><span id="ans-label"></span></div>
-    <div class="mini-timer">
+    <div class="badge" style="margin-bottom:0"><span class="dot"></span><span id="ans-label"></span></div>
+    <div class="mini-t">
       <svg width="50" height="50" viewBox="0 0 50 50" style="transform:rotate(-90deg)">
         <circle cx="25" cy="25" r="20" fill="none" stroke="#23232f" stroke-width="5"/>
         <circle id="t-ring" cx="25" cy="25" r="20" fill="none" stroke="#f5c842" stroke-width="5"
           stroke-linecap="round" stroke-dasharray="125.7" stroke-dashoffset="0"
-          style="transition:stroke-dashoffset .6s linear,stroke .4s"/>
+          style="transition:stroke-dashoffset .6s linear,stroke .3s"/>
       </svg>
-      <div class="mini-timer-num" id="t-num">35</div>
+      <div class="mini-t-num" id="t-num">35</div>
     </div>
   </div>
-  <h2 class="round-title">Твоё продолжение!</h2>
-  <p class="round-sub">Остальные не видят твой ответ</p>
+  <h2 class="rtitle">Продолжи фразу!</h2>
+  <p class="rsub">Все пишут одновременно — анонимно</p>
   <div class="phrase-box" id="ans-phrase"></div>
   <div class="card">
-    <label>Продолжи фразу</label>
-    <textarea id="answer-ta" placeholder="Продолжи фразу..."></textarea>
+    <label>Твоё продолжение</label>
+    <textarea id="answer-ta" placeholder="Продолжи фразу…"></textarea>
   </div>
   <button class="btn" onclick="submitAnswer()">Отправить ✓</button>
 </div>
 
-<!-- WAIT FOR VOTING -->
-<div id="s-wait-vote" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="wv-label"></span></div>
-  <div class="wait-icon">🗳️</div>
-  <h2 class="round-title" id="wv-title">Скоро голосование!</h2>
-  <p class="wait-text" id="wv-sub">Другие ещё пишут свои ответы…</p>
+<!-- ANSWERED — wait others -->
+<div id="s-answered" class="screen">
+  <div class="badge"><span class="dot"></span><span id="aw-label"></span></div>
+  <div class="wait-icon">⏳</div>
+  <h2 class="rtitle">Ответ принят!</h2>
+  <p class="wait-text" id="aw-sub">Ждём остальных игроков…</p>
+  <div class="prog-wrap"><div class="prog-bar" id="aw-prog" style="width:0%"></div></div>
 </div>
 
 <!-- VOTE -->
 <div id="s-vote" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="vt-label"></span></div>
-  <h2 class="round-title" id="vt-title">Голосуй!</h2>
-  <p class="round-sub" id="vt-sub">Выбери самый смешной вариант</p>
+  <div class="badge"><span class="dot"></span><span id="vt-label"></span></div>
+  <h2 class="rtitle">Голосуй! 🗳️</h2>
+  <p class="rsub" id="vt-sub">Выбери самое смешное продолжение</p>
   <div class="phrase-box" id="vt-phrase"></div>
   <div class="vote-grid" id="vt-grid"></div>
-  <button class="btn" id="vt-confirm" onclick="submitVote()" disabled>Подтвердить →</button>
+  <button class="btn" id="vt-btn" onclick="submitVote()" disabled>Подтвердить →</button>
 </div>
 
-<!-- WAIT AFTER VOTE -->
+<!-- VOTED — wait others -->
 <div id="s-voted" class="screen">
-  <div class="phase-badge"><span class="dot"></span></div>
+  <div class="badge"><span class="dot"></span></div>
   <div class="wait-icon">✅</div>
-  <h2 class="round-title">Голос принят!</h2>
-  <p class="wait-text">Ждём остальных…</p>
+  <h2 class="rtitle">Голос принят!</h2>
+  <p class="wait-text" id="vw-sub">Ждём остальных…</p>
+  <div class="prog-wrap"><div class="prog-bar" id="vw-prog" style="width:0%"></div></div>
 </div>
 
-<!-- WAIT FOR NEXT ROUND -->
-<div id="s-wait-next" class="screen">
-  <div class="phase-badge"><span class="dot"></span><span id="wn-label"></span></div>
+<!-- WAIT RESULTS -->
+<div id="s-wait-results" class="screen">
+  <div class="badge"><span class="dot"></span></div>
   <div class="wait-icon">📊</div>
-  <h2 class="round-title">Итоги раунда</h2>
+  <h2 class="rtitle">Итоги раунда</h2>
   <p class="wait-text">Смотри на экран хоста!</p>
 </div>
 
 <!-- FINAL -->
 <div id="s-final" class="screen">
-  <div style="text-align:center;margin:20px 0">
-    <div style="font-size:52px">🏆</div>
-    <h2 class="round-title" style="margin-top:10px" id="fin-title">Игра завершена!</h2>
-    <p class="round-sub" id="fin-sub"></p>
+  <div style="text-align:center;margin:16px 0">
+    <div style="font-size:50px">🏆</div>
+    <h2 class="rtitle" style="margin-top:10px" id="fin-title">Игра завершена!</h2>
+    <p class="rsub" id="fin-sub"></p>
   </div>
   <button class="btn" onclick="location.reload()">🔄 Сыграть снова</button>
 </div>
 
 <script>
-// ── INIT ─────────────────────────────────────────────────────────
+const AVATARS = ['😀','😂','🤩','😎','🥳','🤓','😈','👻','🐶','🐱','🦊','🐸','🐼','🦁','🐯','🦄','🍕','🎮','🚀','⚡','🔥','💎','🎭','🎪'];
+const SECS = 35;
+const CIRC = 2 * Math.PI * 20;
+
 const params = new URLSearchParams(location.search);
 const roomId = params.get('room');
-const SECS = 35;
-const CIRC = 2 * Math.PI * 20; // r=20 → 125.66
+let ws, myId, myName, myAvatar = '😀';
+let timerInt, currentPhrase = '', currentAnswers = [], selectedIdx = null;
+let totalAnswerers = 0, totalVoters = 0;
 
-let ws, myId, myName, timerInt;
-let currentAnswers = [], selectedVoteIdx = null;
-let currentPhrase = '';
+if (!roomId) showErr('Неверная ссылка — нет ID комнаты');
+else document.getElementById('room-label').textContent = `Комната: ${roomId}`;
 
-if (!roomId) {
-  showError('Неверная ссылка — нет ID комнаты');
-} else {
-  document.getElementById('room-label').textContent = `Комната: ${roomId}`;
-}
-
-// ── VOICE ────────────────────────────────────────────────────────
-let _recognition = null, _micListening = false;
-
-function toggleMic() {
-  if (_micListening) { stopMic(); return; }
-  startMic();
-}
-function startMic() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { setMicStatus('Не поддерживается в этом браузере', 'err'); return; }
-  _recognition = new SR();
-  _recognition.lang = 'ru-RU';
-  _recognition.interimResults = false;
-  _recognition.onstart = () => {
-    _micListening = true;
-    document.getElementById('mic-btn').classList.add('listening');
-    document.getElementById('mic-icon').textContent = '⏹';
-    setMicStatus('Слушаю… скажи имя', 'listening');
+// ── AVATAR GRID ───────────────────────────────────────────────────
+const avGrid = document.getElementById('av-grid');
+AVATARS.forEach(e => {
+  const btn = document.createElement('button');
+  btn.className = 'av-btn' + (e==='😀'?' sel':'');
+  btn.textContent = e;
+  btn.onclick = () => {
+    document.querySelectorAll('.av-btn').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel'); myAvatar=e;
+    document.getElementById('av-preview').textContent=e;
   };
-  _recognition.onresult = (e) => {
-    const name = e.results[0][0].transcript.trim();
-    document.getElementById('name-input').value = name.charAt(0).toUpperCase() + name.slice(1);
-    stopMic();
-    setMicStatus(`✓ Услышал: "${name}"`, 'ok');
-  };
-  _recognition.onerror = (e) => {
-    stopMic();
-    const msgs = { 'not-allowed': 'Нет доступа к микрофону', 'no-speech': 'Ничего не услышал', 'network': 'Ошибка сети' };
-    setMicStatus(msgs[e.error] || `Ошибка: ${e.error}`, 'err');
-  };
-  _recognition.onend = () => stopMic();
-  _recognition.start();
-}
-function stopMic() {
-  _micListening = false;
-  document.getElementById('mic-btn').classList.remove('listening');
-  document.getElementById('mic-icon').textContent = '🎤';
-  if (_recognition) { try { _recognition.stop(); } catch(e){} _recognition = null; }
-}
-function setMicStatus(msg, cls='') {
-  const el = document.getElementById('mic-status');
-  el.textContent = msg;
-  el.className = 'mic-status' + (cls ? ' '+cls : '');
-}
+  avGrid.appendChild(btn);
+});
 
-// ── JOIN ─────────────────────────────────────────────────────────
+// ── VOICE ─────────────────────────────────────────────────────────
+let _rec=null,_on=false;
+function toggleMic(){_on?stopMic():startMic();}
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setMS('Не поддерживается','err');return;}
+  _rec=new SR();_rec.lang='ru-RU';_rec.interimResults=false;
+  _rec.onstart=()=>{_on=true;document.getElementById('mic-btn').classList.add('on');document.getElementById('mic-icon').textContent='⏹';setMS('Слушаю…','go');};
+  _rec.onresult=e=>{const n=e.results[0][0].transcript.trim();document.getElementById('name-inp').value=n.charAt(0).toUpperCase()+n.slice(1);stopMic();setMS('✓ "'+n+'"','ok');};
+  _rec.onerror=e=>{stopMic();setMS({'not-allowed':'Нет доступа','no-speech':'Ничего не услышал','network':'Ошибка сети'}[e.error]||'Ошибка','err');};
+  _rec.onend=()=>stopMic();_rec.start();
+}
+function stopMic(){_on=false;document.getElementById('mic-btn').classList.remove('on');document.getElementById('mic-icon').textContent='🎤';if(_rec){try{_rec.stop();}catch(e){}_rec=null;}}
+function setMS(m,c=''){const el=document.getElementById('mic-st');el.textContent=m;el.className='mic-st'+(c?' '+c:'');}
+
+// ── JOIN ──────────────────────────────────────────────────────────
 function joinGame() {
-  const name = document.getElementById('name-input').value.trim();
-  if (!name) { setMicStatus('Введи имя!', 'err'); return; }
-  myName = name;
-  connectWS(name);
+  const name = document.getElementById('name-inp').value.trim();
+  if (!name){setMS('Введи имя!','err');return;}
+  myName=name;
+  connectWS(name, myAvatar);
 }
 
-function connectWS(name) {
-  const WS_URL = location.protocol === 'https:' ? `wss://${location.host}` : `ws://${location.host}`;
-  ws = new WebSocket(WS_URL);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({ type: 'player:join', payload: { roomId, name } }));
-  };
-  ws.onmessage = (e) => {
-    const msg = JSON.parse(e.data);
-    handleMsg(msg);
-  };
-  ws.onclose = () => {
-    // Try reconnect after short delay
-    setTimeout(() => connectWS(myName), 2000);
-  };
+function connectWS(name, avatar) {
+  const url = location.protocol==='https:' ? `wss://${location.host}` : `ws://${location.host}`;
+  ws = new WebSocket(url);
+  ws.onopen = () => ws.send(JSON.stringify({type:'player:join',payload:{roomId,name,avatar}}));
+  ws.onmessage = e => handleMsg(JSON.parse(e.data));
+  ws.onclose = () => setTimeout(()=>connectWS(myName,myAvatar), 2000);
 }
 
-// ── MESSAGE HANDLER ───────────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg, color='#f5c842') {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a22;border:1px solid #2e2e3e;border-radius:12px;padding:10px 18px;font-size:13px;z-index:999;transition:opacity .3s;max-width:320px;text-align:center;pointer-events:none';
+    document.body.appendChild(t);
+  }
+  t.style.color = color;
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>{ t.style.opacity='0'; }, 3000);
+}
+
+// ── MESSAGES ──────────────────────────────────────────────────────
 function handleMsg(msg) {
-  const { type, payload } = msg;
+  const {type, payload} = msg;
 
-  if (type === 'error') {
-    showError(payload.message);
+  if (type==='error') { showErr(payload.message); return; }
+
+  // ── ПЕРЕПОДКЛЮЧЕНИЕ ──
+  if (type==='player:reconnected') {
+    myId = payload.id;
+    myName = payload.name;
+    myAvatar = payload.avatar;
+    const gs = payload.gameState;
+    showToast(`✓ Переподключился как ${payload.avatar} ${payload.name}`, '#7fcf7f');
+
+    // Восстанавливаем экран в зависимости от фазы
+    const setter = { id: gs.setterId, name: gs.setterName, avatar: gs.setterAvatar };
+    if (gs.phase === 'lobby') {
+      go('s-lobby');
+    } else if (gs.phase === 'phrase') {
+      if (gs.setterId === myId) {
+        setText('ep-label', `Круг ${gs.round} / ${gs.totalRounds}`);
+        document.getElementById('phrase-ta').value='';
+        go('s-enter-phrase');
+      } else {
+        setText('wp-label', `Круг ${gs.round} / ${gs.totalRounds}`);
+        setText('wp-title', `${setter.avatar||''} ${setter.name} придумывает фразу…`);
+        go('s-wait-phrase');
+      }
+    } else if (gs.phase === 'answering') {
+      currentPhrase = gs.phrase;
+      if (gs.setterId === myId || gs.alreadyAnswered) {
+        setText('aw-label', `Круг ${gs.round} / ${gs.totalRounds}`);
+        setText('aw-sub', 'Ждём остальных ответов…');
+        document.getElementById('aw-prog').style.width = '50%';
+        go('s-answered');
+      } else {
+        setText('ans-label', `Круг ${gs.round} / ${gs.totalRounds}`);
+        setText('ans-phrase', `«${gs.phrase}»`);
+        document.getElementById('answer-ta').value='';
+        go('s-answer');
+        startTimer();
+      }
+    } else if (gs.phase === 'voting') {
+      currentPhrase = gs.phrase;
+      currentAnswers = gs.answers;
+      if (gs.alreadyVoted) {
+        setText('vw-sub', 'Ждём остальных голосов…');
+        go('s-voted');
+      } else {
+        // Показываем экран голосования
+        setText('vt-label', `Круг ${gs.round} / ${gs.totalRounds}`);
+        setText('vt-phrase', `«${gs.phrase}»`);
+        setText('vt-sub', gs.setterId===myId ? '👑 Твой голос даёт ×2 очка!' : 'Выбери самое смешное продолжение');
+        selectedIdx=null;
+        document.getElementById('vt-btn').disabled=true;
+        const grid=document.getElementById('vt-grid');
+        grid.innerHTML='';
+        gs.answers.forEach(ans=>{
+          const btn=document.createElement('button');
+          btn.className='vc';
+          btn.innerHTML=`<div class="vnum">Вариант ${ans.idx+1}</div>${esc(ans.text)}`;
+          btn.onclick=()=>{document.querySelectorAll('.vc').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');selectedIdx=ans.idx;document.getElementById('vt-btn').disabled=false;};
+          grid.appendChild(btn);
+        });
+        go('s-vote');
+      }
+    } else if (gs.phase === 'results') {
+      go('s-wait-results');
+    } else if (gs.phase === 'final') {
+      go('s-final');
+    }
     return;
   }
 
-  if (type === 'player:joined') {
+  if (type==='player:left') {
+    showToast(`${payload.avatar||''} ${payload.name} вышел из игры`, '#ff6b6b');
+  }
+  if (type==='player:back') {
+    showToast(`${payload.avatar||''} ${payload.name} вернулся!`, '#7fcf7f');
+  }
+
+  if (type==='player:joined') {
     myId = payload.id;
     go('s-lobby');
   }
-
-  else if (type === 'room:players') {
-    const el = document.getElementById('lobby-players');
-    el.innerHTML = payload.players.map(p => `• ${esc(p.name)}`).join('<br>');
+  else if (type==='room:players') {
+    document.getElementById('lobby-pl').innerHTML = payload.players.map(p=>`${p.avatar||'😀'} ${esc(p.name)}${p.isHost?' 👑':''}${!p.online?' 💤':''}`).join(' &nbsp;·&nbsp; ');
   }
-
-  else if (type === 'game:start') {
+  else if (type==='game:start' || type==='game:next_turn') {
     handleNewTurn(payload);
   }
-
-  else if (type === 'game:next_turn') {
-    handleNewTurn(payload);
-  }
-
-  else if (type === 'game:phrase') {
+  else if (type==='game:phrase') {
     currentPhrase = payload.phrase;
-    const amIInQueue = payload.answerQueue.includes(myId);
-    // Setter doesn't answer
-    if (!amIInQueue) {
-      // I'm the setter or excluded — wait for voting
-      setText('wa-label', `Круг ${payload.round} / ${payload.totalRounds}`);
-      setText('wa-title', 'Жди пока все напишут');
-      setText('wa-phrase', `«${payload.phrase}»`);
-      setText('wa-sub', 'Остальные игроки пишут продолжения…');
-      go('s-wait-answer');
-    }
-    // If I'm in the queue, wait for my turn notification
-    else {
-      setText('wa-label', `Круг ${payload.round} / ${payload.totalRounds}`);
-      setText('wa-title', 'Сейчас твоя очередь!');
-      setText('wa-phrase', `«${payload.phrase}»`);
-      setText('wa-sub', 'Подготовься…');
-      go('s-wait-answer');
-    }
-  }
-
-  else if (type === 'game:your_turn_answer') {
-    if (payload.currentAnswererId === myId) {
-      // My turn to answer!
-      setText('ans-label', document.getElementById('wa-label')?.textContent || '');
-      setText('ans-phrase', `«${currentPhrase}»`);
-      document.getElementById('answer-ta').value = '';
+    totalAnswerers = payload.answererCount;
+    if (payload.setterId === myId) {
+      // I'm the setter — wait while others answer
+      setText('aw-label','');
+      setText('aw-sub',`Ждём ${payload.answererCount} ответов…`);
+      document.getElementById('aw-prog').style.width='0%';
+      go('s-answered');
+    } else {
+      // I answer!
+      setText('ans-label',`Круг ${payload.round} / ${payload.totalRounds}`);
+      setText('ans-phrase',`«${payload.phrase}»`);
+      document.getElementById('answer-ta').value='';
       go('s-answer');
-      startAnswerTimer();
-    } else {
-      // Someone else's turn — just wait
-      if (document.getElementById('s-answer').classList.contains('active')) {
-        // Already answered, stay on wait
-      }
-      setText('wa-sub', `Ещё ${payload.remaining} игрок(ов) пишут…`);
+      startTimer();
     }
   }
-
-  else if (type === 'answer:ok') {
+  else if (type==='game:answer_progress') {
+    const pct = (1 - payload.remaining/payload.total)*100;
+    document.getElementById('aw-prog').style.width = pct+'%';
+    setText('aw-sub', payload.remaining===0 ? 'Все ответили! Начинаем голосование…' : `Осталось ответить: ${payload.remaining}`);
+  }
+  else if (type==='answer:ok') {
     clearTimer();
-    setText('wv-label', '');
-    setText('wv-title', 'Ответ принят! ✓');
-    setText('wv-sub', 'Ждём остальных игроков…');
-    go('s-wait-vote');
+    setText('aw-label', document.getElementById('ans-label')?.textContent||'');
+    setText('aw-sub','Ответ принят! Ждём остальных…');
+    document.getElementById('aw-prog').style.width='0%';
+    go('s-answered');
   }
-
-  else if (type === 'game:voting') {
+  else if (type==='game:voting') {
     currentAnswers = payload.answers;
-    // Check if it's my turn to vote
-    if (payload.voteQueue[0] === myId) {
-      showVoteScreen(payload);
-    } else {
-      setText('wv-label', '');
-      setText('wv-title', 'Скоро голосование!');
-      setText('wv-sub', 'Жди своей очереди…');
-      go('s-wait-vote');
-    }
+    totalVoters = payload.total;
+    const isSetter = payload.setterId === myId;
+    setText('vt-label','');
+    setText('vt-phrase',`«${currentPhrase}»`);
+    setText('vt-sub', isSetter ? '👑 Твой голос даёт ×2 очка — выбери лучшее!' : 'Выбери самое смешное продолжение');
+    selectedIdx = null;
+    document.getElementById('vt-btn').disabled = true;
+    const grid = document.getElementById('vt-grid');
+    grid.innerHTML='';
+    payload.answers.forEach(ans => {
+      const btn = document.createElement('button');
+      btn.className='vc';
+      btn.innerHTML=`<div class="vnum">Вариант ${ans.idx+1}</div>${esc(ans.text)}`;
+      btn.onclick=()=>{
+        document.querySelectorAll('.vc').forEach(b=>b.classList.remove('sel'));
+        btn.classList.add('sel');
+        selectedIdx=ans.idx;
+        document.getElementById('vt-btn').disabled=false;
+      };
+      grid.appendChild(btn);
+    });
+    go('s-vote');
   }
-
-  else if (type === 'game:your_turn_vote') {
-    if (payload.currentVoterId === myId) {
-      showVoteScreen({ answers: currentAnswers });
-    }
-    // else: just wait
-  }
-
-  else if (type === 'vote:ok') {
+  else if (type==='vote:ok') {
+    setText('vw-sub','Голос принят! Ждём остальных…');
+    document.getElementById('vw-prog').style.width='0%';
     go('s-voted');
   }
-
-  else if (type === 'game:results') {
-    setText('wn-label', `Круг ${payload.round} / ${payload.totalRounds}`);
-    go('s-wait-next');
+  else if (type==='game:vote_progress') {
+    const pct = (1 - payload.remaining/payload.total)*100;
+    // Update both screens (whichever is active)
+    const vwp = document.getElementById('vw-prog');
+    const vtp_voted = document.getElementById('vw-sub');
+    if(vwp) vwp.style.width=pct+'%';
+    if(vtp_voted&&payload.remaining>0) vtp_voted.textContent=`Осталось проголосовать: ${payload.remaining}`;
   }
-
-  else if (type === 'game:final') {
-    const sorted = [...payload.players].sort((a,b) => b.score - a.score);
-    const me = payload.players.find(p => p.id === myId);
-    const myRank = sorted.findIndex(p => p.id === myId) + 1;
-    const medals = ['🥇','🥈','🥉'];
-    setText('fin-title', myRank === 1 ? '🏆 Ты победил!' : `Игра завершена!`);
-    setText('fin-sub', `Твоё место: ${medals[myRank-1]||myRank} • ${me?.score ?? 0} очков`);
+  else if (type==='game:results') {
+    go('s-wait-results');
+  }
+  else if (type==='game:next_turn') {
+    handleNewTurn(payload);
+  }
+  else if (type==='game:final') {
+    const sorted=[...payload.players].sort((a,b)=>b.score-a.score);
+    const me=payload.players.find(p=>p.id===myId);
+    const rank=sorted.findIndex(p=>p.id===myId)+1;
+    const medals=['🥇','🥈','🥉'];
+    setText('fin-title', rank===1?'🏆 Ты победил!':'Игра завершена!');
+    setText('fin-sub', `Твоё место: ${medals[rank-1]||rank} · ${me?.score??0} очков`);
     go('s-final');
   }
 }
 
-// ── GAME ACTIONS ─────────────────────────────────────────────────
+// ── GAME ACTIONS ──────────────────────────────────────────────────
 function handleNewTurn(payload) {
-  const label = `Круг ${payload.round} / ${payload.totalRounds}`;
-  const isSetter = payload.setter.id === myId;
-  if (isSetter) {
+  const label=`Круг ${payload.round} / ${payload.totalRounds}`;
+  if (payload.setter.id === myId) {
     setText('ep-label', label);
-    document.getElementById('phrase-ta').value = '';
+    document.getElementById('phrase-ta').value='';
     go('s-enter-phrase');
   } else {
     setText('wp-label', label);
-    setText('wp-title', `${payload.setter.name} придумывает фразу…`);
+    setText('wp-title', `${payload.setter.avatar||''} ${payload.setter.name} придумывает фразу…`);
     go('s-wait-phrase');
   }
 }
 
 function submitPhrase() {
   const phrase = document.getElementById('phrase-ta').value.trim();
-  if (phrase.length < 3) { alert('Фраза слишком короткая!'); return; }
-  ws.send(JSON.stringify({ type: 'game:phrase', payload: { phrase } }));
+  if (phrase.length<3){alert('Фраза слишком короткая!');return;}
+  ws.send(JSON.stringify({type:'game:phrase',payload:{phrase}}));
 }
 
 function submitAnswer() {
   const text = document.getElementById('answer-ta').value.trim();
-  if (!text) { alert('Напиши что-нибудь!'); return; }
+  if (!text){alert('Напиши что-нибудь!');return;}
   clearTimer();
-  ws.send(JSON.stringify({ type: 'game:answer', payload: { text } }));
-}
-
-function showVoteScreen(payload) {
-  const isSetter = document.getElementById('ep-label')?.textContent?.length > 0; // rough check
-  setText('vt-label', '');
-  setText('vt-title', 'Голосуй! 🗳️');
-  setText('vt-sub', 'Выбери самое смешное продолжение');
-  setText('vt-phrase', `«${currentPhrase}»`);
-
-  selectedVoteIdx = null;
-  document.getElementById('vt-confirm').disabled = true;
-
-  const grid = document.getElementById('vt-grid');
-  grid.innerHTML = '';
-  (payload.answers || currentAnswers).forEach((ans) => {
-    const btn = document.createElement('button');
-    btn.className = 'vote-card';
-    btn.innerHTML = `<div class="vnum">Вариант ${ans.idx + 1}</div>${esc(ans.text)}`;
-    btn.onclick = () => {
-      document.querySelectorAll('.vote-card').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedVoteIdx = ans.idx;
-      document.getElementById('vt-confirm').disabled = false;
-    };
-    grid.appendChild(btn);
-  });
-  go('s-vote');
+  ws.send(JSON.stringify({type:'game:answer',payload:{text}}));
 }
 
 function submitVote() {
-  if (selectedVoteIdx === null) return;
-  ws.send(JSON.stringify({ type: 'game:vote', payload: { answerIdx: selectedVoteIdx } }));
+  if (selectedIdx===null) return;
+  ws.send(JSON.stringify({type:'game:vote',payload:{answerIdx:selectedIdx}}));
 }
 
 // ── TIMER ─────────────────────────────────────────────────────────
-function startAnswerTimer() {
-  let left = SECS;
-  updateTimer(left);
-  clearInterval(timerInt);
-  timerInt = setInterval(() => {
-    left--;
-    updateTimer(left);
-    if (left <= 0) {
+function startTimer() {
+  let left=SECS; updateT(left); clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    left--;updateT(left);
+    if(left<=0){
       clearInterval(timerInt);
-      const text = document.getElementById('answer-ta').value.trim();
-      ws.send(JSON.stringify({ type: 'game:answer', payload: { text: text || '(пропустил)' } }));
+      const text=document.getElementById('answer-ta').value.trim();
+      ws.send(JSON.stringify({type:'game:answer',payload:{text:text||'(пропустил)'}}));
     }
-  }, 1000);
+  },1000);
 }
-
-function updateTimer(t) {
-  const ring = document.getElementById('t-ring');
-  const offset = CIRC * (1 - t / SECS);
-  ring.style.strokeDashoffset = offset;
-  ring.style.stroke = t <= 10 ? '#ff6b6b' : t <= 20 ? '#f5a623' : '#f5c842';
-  document.getElementById('t-num').textContent = t;
+function updateT(t) {
+  const ring=document.getElementById('t-ring');
+  ring.style.strokeDashoffset=CIRC*(1-t/SECS);
+  ring.style.stroke=t<=10?'#ff6b6b':t<=20?'#f5a623':'#f5c842';
+  document.getElementById('t-num').textContent=t;
 }
-
-function clearTimer() { clearInterval(timerInt); }
+function clearTimer(){clearInterval(timerInt);}
 
 // ── UTILS ─────────────────────────────────────────────────────────
-function go(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-function setText(id, val) { const el = document.getElementById(id); if(el) el.textContent = val; }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function showError(msg) {
-  const box = document.getElementById('error-box');
-  box.textContent = '⚠️ ' + msg;
-  box.style.display = 'block';
-}
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showErr(m){const b=document.getElementById('err-box');b.textContent='⚠️ '+m;b.style.display='block';}
 </script>
 </body>
 </html>
