@@ -9,7 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { etag: false, maxAge: 0, setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); } }));
 app.use(express.json());
 
 const rooms = {};
@@ -22,21 +22,35 @@ function genRoomId() {
   return id;
 }
 
-const ROUND_THEMES = [
-  { label: 'Лёгкая фраза', hint: 'Одна короткая фраза — просто продолжи', emoji: '😄' },
-  { label: 'Четверостишье', hint: 'Продолжи в рифму — 4 строки', emoji: '🎵' },
-  { label: 'На тему', hint: '', emoji: '🎯' }, // hint генерируется динамически
+const ROUND_CONFIGS = [
+  {
+    label: 'Продолжи фразу', emoji: '😄', secs: 60,
+    hint: 'Задающий начинает фразу — продолжи её как хочешь, чем смешнее тем лучше',
+    setterHint: 'Напиши начало любой фразы',
+    example: { phrase: 'Мам, я всё объясню, но…', answer: '…это была не я, это был кот' },
+  },
+  {
+    label: 'Худший совет', emoji: '😈', secs: 60,
+    hint: 'Задающий описывает проблему — дай самый нелепый и бесполезный совет',
+    setterHint: 'Опиши любую жизненную проблему',
+    example: { phrase: 'Я опаздываю на работу…', answer: 'Позвони и скажи что умер' },
+  },
+  {
+    label: 'В рифму', emoji: '🎵', secs: 60,
+    hint: 'Задающий пишет первую строчку — продолжи в рифму (1-2 строки)',
+    setterHint: 'Напиши первую строчку стихотворения',
+    example: { phrase: 'Я встал сегодня в семь утра…', answer: '…и понял: зря' },
+  },
+  {
+    label: 'Новости', emoji: '📺', secs: 60,
+    hint: 'Задающий пишет абсурдный заголовок — напиши первый абзац этой новости',
+    setterHint: 'Напиши абсурдный заголовок новости',
+    example: { phrase: 'Учёные доказали что…', answer: 'Борщ лечит всё кроме скуки. Исследование проводилось на 40 бабушках в течение 3 лет.' },
+  },
 ];
 
-const ROUND3_THEMES = ['Детство', 'Работа', 'Соседи', 'Еда', 'Путешествия', 'Технологии', 'Семья', 'Животные'];
-
 function getRoundInfo(round) {
-  const info = ROUND_THEMES[Math.min(round - 1, ROUND_THEMES.length - 1)];
-  if (round === 3) {
-    const theme = ROUND3_THEMES[Math.floor(Math.random() * ROUND3_THEMES.length)];
-    return { ...info, hint: `Тема раунда: «${theme}»`, theme };
-  }
-  return info;
+  return ROUND_CONFIGS[Math.min(round - 1, ROUND_CONFIGS.length - 1)];
 }
 
 function broadcast(room, msg) {
@@ -90,7 +104,7 @@ app.post('/api/create-room', async (req, res) => {
     state: {
       phase: 'lobby',
       round: 0,
-      totalRounds: 3,
+      totalRounds: 4,
       setterIdx: 0,
       setterTurnsDone: 0,
       phrase: '',
@@ -197,7 +211,7 @@ wss.on('connection', (ws) => {
       room.state.setterIdx      = Math.floor(Math.random() * room.players.length);
       room.state.round          = 1;
       room.state.setterTurnsDone = 0;
-      room.state.totalRounds    = 3;
+      room.state.totalRounds    = 4;
       room.state.phase          = 'phrase';
 
       const setter    = room.players[room.state.setterIdx];
@@ -206,7 +220,7 @@ wss.on('connection', (ws) => {
       broadcast(room, {
         type: 'game:start',
         payload: {
-          totalRounds: 3,
+          totalRounds: 4,
           round: 1,
           roundInfo,
           setter: { id: setter.id, name: setter.name, avatar: setter.avatar },
@@ -292,6 +306,27 @@ wss.on('connection', (ws) => {
       broadcast(room, { type: 'game:vote_progress', payload: { remaining, total: onlinePlayers.length } });
 
       if (remaining === 0) finishRound(room);
+    }
+
+    // ── HOST TUTORIAL DONE ───────────────────────────────────────
+    else if (type === 'host:tutorial_done') {
+      if (!room) return;
+      const me = room.players.find(p => p.id === myPlayerId);
+      if (!me?.isHost) return;
+      // Broadcast to all players to proceed to their turn screen
+      const setter = room.players[room.state.setterIdx];
+      const roundInfo = getRoundInfo(room.state.round);
+      broadcast(room, {
+        type: 'game:next_turn',
+        payload: {
+          round: room.state.round,
+          totalRounds: room.state.totalRounds,
+          roundInfo,
+          setter: { id: setter.id, name: setter.name, avatar: setter.avatar },
+          players: publicPlayers(room),
+          roundChanged: false,
+        }
+      });
     }
 
     // ── HOST NEXT ─────────────────────────────────────────────────
@@ -383,10 +418,12 @@ function advanceGame(room) {
   const totalTurns = state.totalRounds * room.players.length;
   if (state.setterTurnsDone >= totalTurns) { endGame(room); return; }
 
+  const prevRound = state.round;
   state.setterIdx = (state.setterIdx + 1) % room.players.length;
   if (state.setterIdx === 0) state.round++;
   if (state.round > state.totalRounds) { endGame(room); return; }
 
+  const roundChanged = state.round !== prevRound;
   state.phase = 'phrase';
   const setter    = room.players[state.setterIdx];
   const roundInfo = getRoundInfo(state.round);
@@ -401,6 +438,7 @@ function advanceGame(room) {
       round: state.round, totalRounds: state.totalRounds, roundInfo,
       setter: { id: setter.id, name: setter.name, avatar: setter.avatar },
       players: publicPlayers(room),
+      roundChanged,
     }
   });
 }

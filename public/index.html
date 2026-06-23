@@ -161,6 +161,31 @@ hr{border:none;border-top:1px solid var(--b);margin:16px 0}
   <button class="btn sec" onclick="go('s-join-code')">← Назад</button>
 </div>
 
+
+<!-- TUTORIAL (перед первым раундом) -->
+<div id="s-tutorial" class="screen">
+  <div class="badge"><span class="dot"></span>Как играть</div>
+  <h2 class="rtitle" id="tut-title"></h2>
+  <p class="rsub" id="tut-hint"></p>
+  <div style="margin-bottom:20px">
+    <div style="font-size:11px;color:var(--m);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Пример</div>
+    <div style="background:var(--s2);border-radius:12px;padding:16px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--m);margin-bottom:6px">Задающий пишет:</div>
+      <div style="font-size:16px;font-style:italic;color:var(--a)" id="tut-phrase"></div>
+    </div>
+    <div style="display:flex;justify-content:center;font-size:20px;margin-bottom:10px">↓</div>
+    <div style="background:var(--s2);border-radius:12px;padding:16px">
+      <div style="font-size:11px;color:var(--m);margin-bottom:6px">Игроки продолжают:</div>
+      <div style="font-size:15px;color:#7fcf7f" id="tut-answer"></div>
+    </div>
+  </div>
+  <div id="tut-rounds" style="display:grid;gap:8px;margin-bottom:20px"></div>
+  <div id="tut-host-btn" style="display:none">
+    <button class="btn" onclick="hostStartAfterTutorial()">Начать первый раунд →</button>
+  </div>
+  <p id="tut-guest-wait" style="text-align:center;color:var(--m);font-size:13px;display:none">Ждём хоста…</p>
+</div>
+
 <!-- LOBBY -->
 <div id="s-lobby" class="screen">
   <div class="logo"><h1>💬 Продолжи фразу</h1></div>
@@ -174,7 +199,7 @@ hr{border:none;border-top:1px solid var(--b);margin:16px 0}
     <div id="lobby-players"><p style="color:var(--m);font-size:13px">Ждём…</p></div>
   </div>
   <div id="host-start-wrap" style="display:none">
-    <button class="btn" id="start-btn" onclick="hostStart()" disabled>▶ Начать игру</button>
+    <button class="btn" id="start-btn" onclick="showTutorialLobby()" disabled>▶ Начать игру</button>
   </div>
   <p id="guest-wait" style="text-align:center;color:var(--m);font-size:13px;display:none">Ждём пока хост начнёт игру…</p>
 </div>
@@ -213,7 +238,7 @@ hr{border:none;border-top:1px solid var(--b);margin:16px 0}
           stroke-linecap="round" stroke-dasharray="125.7" stroke-dashoffset="0"
           style="transition:stroke-dashoffset .5s linear,stroke .3s"/>
       </svg>
-      <div class="mini-t-num" id="t-num">40</div>
+      <div class="mini-t-num" id="t-num">60</div>
     </div>
   </div>
   <div class="round-banner"><span class="ri-emoji" id="ans-emoji"></span><div><div class="ri-label" id="ans-rlabel"></div><div class="ri-hint" id="ans-hint"></div></div></div>
@@ -291,7 +316,7 @@ hr{border:none;border-top:1px solid var(--b);margin:16px 0}
 
 <script>
 const AVATARS=['😀','😂','🤩','😎','🥳','🤓','😈','👻','🐶','🐱','🦊','🐸','🐼','🦁','🐯','🦄','🍕','🎮','🚀','⚡','🔥','💎','🎭','🎪'];
-const ROUND_SECS=[40,60,60]; // по раундам
+const ROUND_SECS=[60,60,60,60]; // v2 — 4 раунда по 60 секунд
 const CIRC=2*Math.PI*20;
 
 let ws, myId, myName, myAvatar='😀', myRoomId=null, amIHost=false;
@@ -401,13 +426,30 @@ function handleMsg(msg){
   if(type==='player:left'){players=payload.players||players;showToast(`${payload.avatar||''} ${payload.name} вышел`,'#ff6b6b');}
   if(type==='player:back'){showToast(`${payload.avatar||''} ${payload.name} вернулся!`,'#7fcf7f');}
 
-  if(type==='game:start'||type==='game:next_turn'){players=payload.players;handleNewTurn(payload);}
+  if(type==='game:start'){
+    players=payload.players;
+    // Show tutorial before first round
+    showTutorial(payload.round);
+    // Store payload to use after tutorial confirm
+    window._pendingTurn = payload;
+    return;
+  }
+  if(type==='game:next_turn'){
+    players=payload.players;
+    // Show tutorial at start of each new round (when setter changes to next round)
+    if(payload.roundChanged) {
+      showTutorial(payload.round);
+      window._pendingTurn = payload;
+      return;
+    }
+    handleNewTurn(payload);
+  }
 
   if(type==='game:phrase'){
     currentPhrase=payload.phrase;
     currentRound=payload.round;
     const ri=payload.roundInfo||{};
-    const secs=ROUND_SECS[payload.round-1]||40;
+    const secs=ROUND_SECS[payload.round-1]||60;
     // Все отвечают кроме сеттера
     if(payload.setterId===myId){
       // Я сеттер — жду пока остальные пишут
@@ -537,7 +579,7 @@ function restoreScreen(gs){
       setText('ans-phrase',`«${gs.phrase}»`);
       document.getElementById('answer-ta').value='';
       go('s-answer');
-      startTimer(ROUND_SECS[gs.round-1]||40);
+      startTimer(ROUND_SECS[gs.round-1]||60);
     }
   }
   else if(gs.phase==='voting'){
@@ -577,12 +619,74 @@ function submitVote(){
   if(selectedIdx===null) return;
   ws.send(JSON.stringify({type:'game:vote',payload:{answerIdx:selectedIdx}}));
 }
+// ── TUTORIAL ──────────────────────────────────────────────────
+const ROUND_CONFIGS_CLIENT = [
+  { label:'Продолжи фразу', emoji:'😄', hint:'Задающий начинает фразу — продолжи как хочешь, чем смешнее тем лучше', phrase:'Мам, я всё объясню, но…', answer:'…это была не я, это был кот' },
+  { label:'Худший совет', emoji:'😈', hint:'Задающий описывает проблему — дай самый нелепый совет', phrase:'Я опаздываю на работу…', answer:'Позвони и скажи что умер' },
+  { label:'В рифму', emoji:'🎵', hint:'Задающий пишет первую строчку — продолжи в рифму', phrase:'Я встал сегодня в семь утра…', answer:'…и понял: зря' },
+  { label:'Новости', emoji:'📺', hint:'Задающий пишет абсурдный заголовок — напиши первый абзац', phrase:'Учёные доказали что…', answer:'Борщ лечит всё кроме скуки. Исследование проводилось на 40 бабушках.' },
+];
+
+function showTutorial(round) {
+  const cfg = ROUND_CONFIGS_CLIENT[Math.min(round-1, ROUND_CONFIGS_CLIENT.length-1)];
+  setText('tut-title', `${cfg.emoji} Круг ${round} — ${cfg.label}`);
+  setText('tut-hint', cfg.hint);
+  setText('tut-phrase', `«${cfg.phrase}»`);
+  setText('tut-answer', cfg.answer);
+
+  // Show all rounds, highlight current
+  document.getElementById('tut-rounds').innerHTML = ROUND_CONFIGS_CLIENT.map((r,i)=>`
+    <div class="tut-round ${i===round-1?'active-round':''}">
+      <div class="tr-emoji">${r.emoji}</div>
+      <div><div class="tr-label">Круг ${i+1} — ${r.label}</div><div class="tr-hint">${r.hint}</div></div>
+    </div>`).join('');
+
+  if(amIHost){
+    document.getElementById('tut-host-btn').style.display='block';
+    document.getElementById('tut-guest-wait').style.display='none';
+  } else {
+    document.getElementById('tut-host-btn').style.display='none';
+    document.getElementById('tut-guest-wait').style.display='block';
+  }
+  go('s-tutorial');
+}
+
+function hostStartAfterTutorial(){
+  if(window._pendingTurn){
+    handleNewTurn(window._pendingTurn);
+    // Tell server we confirmed tutorial (only host does this)
+    ws.send(JSON.stringify({type:'host:tutorial_done',payload:{}}));
+    window._pendingTurn = null;
+  } else {
+    ws.send(JSON.stringify({type:'host:start',payload:{}}));
+  }
+}
+
+function showTutorialLobby(){
+  // Show tutorial before starting — host sees all 4 rounds overview
+  const cfg = ROUND_CONFIGS_CLIENT[0];
+  setText('tut-title','😄 Правила игры');
+  setText('tut-hint','Четыре раунда — каждый со своей механикой. В каждом раунде один задаёт, все отвечают одновременно за 60 секунд, потом голосуем.');
+  setText('tut-phrase', cfg.phrase);
+  setText('tut-answer', cfg.answer);
+  document.getElementById('tut-rounds').innerHTML = ROUND_CONFIGS_CLIENT.map((r,i)=>`
+    <div class="tut-round">
+      <div class="tr-emoji">${r.emoji}</div>
+      <div><div class="tr-label">Круг ${i+1} — ${r.label}</div><div class="tr-hint">${r.hint}</div></div>
+    </div>`).join('');
+  document.getElementById('tut-host-btn').innerHTML = '<button class="btn" onclick="hostStart()">🚀 Начать игру!</button>';
+  document.getElementById('tut-host-btn').style.display='block';
+  document.getElementById('tut-guest-wait').style.display='none';
+  go('s-tutorial');
+}
+
 function hostStart(){ws.send(JSON.stringify({type:'host:start',payload:{}}));}
 function hostNext(){ws.send(JSON.stringify({type:'host:next',payload:{}}));}
 
 // ── TIMER ─────────────────────────────────────────────────────
 function startTimer(secs){
-  let left=secs; updateT(left,secs); clearInterval(timerInt);
+  clearInterval(timerInt); // stop any previous timer first
+  let left=secs; updateT(left,secs);
   timerInt=setInterval(()=>{
     left--; updateT(left,secs);
     if(left<=0){
