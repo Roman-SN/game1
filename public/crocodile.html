@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f0f13">
+<title>Крокодил</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Unbounded:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+:root{--bg:#0f0f13;--s:#1a1a22;--s2:#23232f;--a:#f5c842;--a2:#ff6b6b;--g:#3ddc84;--t:#f0f0f5;--m:#7a7a8c;--b:#2e2e3e;--r:16px}
+html,body{height:100%}
+body{background:var(--bg);color:var(--t);font-family:'Inter',system-ui,sans-serif;overscroll-behavior:none}
+h1,h2,h3{font-family:'Unbounded','Arial Black',sans-serif}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 48px;min-height:100%}
+.screen{display:none}
+.screen.on{display:block}
+.logo{text-align:center;margin:8px 0 22px}
+.logo .em{font-size:56px;line-height:1}
+.logo h1{font-size:28px;margin-top:6px;letter-spacing:.5px}
+.logo p{color:var(--m);font-size:13px;margin-top:6px}
+.card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.card h3{font-size:12px;color:var(--a);margin-bottom:12px;text-transform:uppercase;letter-spacing:.6px}
+input{width:100%;background:var(--bg);border:1px solid var(--b);border-radius:10px;color:var(--t);font-family:inherit;font-size:15px;padding:11px 13px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--a)}
+.btn{display:block;width:100%;background:var(--a);border:none;border-radius:12px;color:#0f0f13;cursor:pointer;font-family:'Unbounded','Arial Black',sans-serif;font-size:13px;font-weight:700;padding:15px;text-align:center;transition:opacity .2s,transform .1s;margin-bottom:10px}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sec{background:var(--s2);color:var(--t);border:1px solid var(--b)}
+.btn.sm{display:inline-block;width:auto;padding:11px 14px;margin:0}
+.row{display:flex;gap:8px;align-items:center}
+.plist{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.pitem{display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--b);border-radius:11px;padding:9px 12px}
+.pitem .av{font-size:20px}
+.pitem .nm{flex:1;font-weight:600}
+.pitem button{background:none;border:none;color:var(--m);font-size:20px;cursor:pointer;padding:0 4px}
+.seg{display:grid;gap:6px}
+.seg.c4{grid-template-columns:repeat(4,1fr)}
+.seg.c3{grid-template-columns:repeat(3,1fr)}
+.seg button{background:var(--s2);border:1px solid var(--b);border-radius:10px;color:var(--t);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:10px 4px;transition:all .15s}
+.seg button small{display:block;color:var(--m);font-weight:400;font-size:10px;margin-top:2px}
+.seg button.on{background:var(--a);border-color:var(--a);color:#0f0f13}
+.seg button.on small{color:#3a3410}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;font-size:14px}
+.toggle small{display:block;color:var(--m);font-size:12px}
+.sw{position:relative;width:46px;height:26px;flex-shrink:0}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:var(--s2);border:1px solid var(--b);border-radius:20px;cursor:pointer;transition:.2s}
+.sw span:before{content:'';position:absolute;width:20px;height:20px;left:2px;top:2px;background:var(--m);border-radius:50%;transition:.2s}
+.sw input:checked+span{background:var(--a);border-color:var(--a)}
+.sw input:checked+span:before{transform:translateX(20px);background:#0f0f13}
+.hint{color:var(--m);font-size:12px;line-height:1.5}
+.err{color:var(--a2);font-size:12px;margin-top:6px;min-height:14px}
+
+/* Ready screen */
+.center{text-align:center}
+.turn-av{font-size:72px;margin:24px 0 8px}
+.turn-name{font-size:26px;margin-bottom:6px}
+.turn-sub{color:var(--m);font-size:14px;margin-bottom:22px}
+.howto{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.howto div{background:var(--s);border:1px solid var(--b);border-radius:12px;padding:12px;font-size:13px}
+.howto b{display:block;font-size:22px;margin-bottom:4px}
+.howto .up b{color:var(--g)}
+.howto .dn b{color:var(--a2)}
+
+/* Play screen */
+#play{position:fixed;inset:0;display:none;flex-direction:column;padding:16px;max-width:480px;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none}
+#play.on{display:flex}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.hud .who{font-weight:700;font-size:14px}
+.hud .sc{font-family:'Unbounded',sans-serif;font-size:14px}
+.hud .sc .ok{color:var(--g)}
+.hud .sc .no{color:var(--a2)}
+.timer{font-family:'Unbounded',sans-serif;font-size:44px;text-align:center;font-weight:900;transition:color .3s}
+.timer.low{color:var(--a2);animation:pulse .5s infinite alternate}
+.bar{height:6px;background:var(--s2);border-radius:4px;overflow:hidden;margin:6px 0 10px}
+.bar i{display:block;height:100%;background:var(--a);width:100%;transition:width .25s linear}
+.zone{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.lbl{position:absolute;left:0;right:0;text-align:center;font-family:'Unbounded',sans-serif;font-size:12px;opacity:.45;transition:opacity .15s,transform .15s}
+.lbl.top{top:4px;color:var(--g)}
+.lbl.bot{bottom:4px;color:var(--a2)}
+.lbl.hot{opacity:1;transform:scale(1.15)}
+.word-card{position:relative;width:100%;min-height:52%;background:var(--s);border:2px solid var(--b);border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 18px;cursor:grab;will-change:transform;touch-action:none}
+.word-card.anim{transition:transform .25s ease,opacity .25s ease,border-color .2s}
+.word-card .w{font-family:'Unbounded','Arial Black',sans-serif;font-size:clamp(26px,9vw,42px);text-align:center;line-height:1.15;word-break:break-word;hyphens:auto}
+.word-card .lvl{position:absolute;top:12px;right:14px;font-size:11px;color:var(--m)}
+.word-card .last{position:absolute;top:12px;left:14px;font-size:11px;color:var(--a2);font-weight:700;display:none}
+.word-card.final .last{display:block}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.btns button{border:none;border-radius:14px;padding:16px 8px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.btns .skip{background:#3a1d22;color:var(--a2)}
+.btns .ok{background:#163a26;color:var(--g)}
+.flash{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}
+.flash.g{background:radial-gradient(circle,rgba(61,220,132,.35),transparent 70%)}
+.flash.r{background:radial-gradient(circle,rgba(255,107,107,.35),transparent 70%)}
+.flash.on{opacity:1;transition:none}
+.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Unbounded',sans-serif;font-size:120px;font-weight:900;color:var(--a);background:var(--bg);z-index:5}
+.pause{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--m);font-size:13px;cursor:pointer;z-index:6}
+
+/* Summary */
+.wlist{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.witem{display:flex;align-items:center;gap:10px;background:var(--s);border:1px solid var(--b);border-radius:11px;padding:10px 12px;cursor:pointer}
+.witem .ic{font-size:18px;width:22px;text-align:center}
+.witem .tx{flex:1;font-weight:600}
+.witem.ok{border-color:#235a3a}
+.witem.ok .ic{color:var(--g)}
+.witem.no .tx{color:var(--m);text-decoration:line-through}
+.witem.no .ic{color:var(--a2)}
+.big{font-family:'Unbounded',sans-serif;font-size:48px;color:var(--a);text-align:center;margin:6px 0}
+.srow{background:var(--s);border:1px solid var(--b);border-radius:11px;display:flex;align-items:center;padding:11px 14px;gap:10px;margin-bottom:6px}
+.srow.lead{border-color:var(--a)}
+.srow .pl{width:22px;color:var(--m);font-weight:700}
+.srow .nm{flex:1;font-weight:600}
+.srow .pt{font-family:'Unbounded',sans-serif;font-size:18px;color:var(--a)}
+.trophy{font-size:80px;text-align:center;margin-top:10px}
+@keyframes pulse{from{opacity:1}to{opacity:.55}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── SETUP ───────────────────────────────── -->
+  <section id="setup" class="screen on">
+    <div class="logo">
+      <div class="em">🐊</div>
+      <h1>КРОКОДИЛ</h1>
+      <p>Покажи слово без слов — за минуту</p>
+    </div>
+
+    <div class="card">
+      <h3>Игроки</h3>
+      <div class="plist" id="plist"></div>
+      <div class="row">
+        <input id="pname" maxlength="20" placeholder="Имя игрока или команды" autocomplete="off">
+        <button class="btn sm" id="padd">＋</button>
+      </div>
+      <div class="err" id="perr"></div>
+    </div>
+
+    <div class="card">
+      <h3>Сложность</h3>
+      <div class="seg c4" id="diff">
+        <button data-v="easy">Лёгкая<small>простые</small></button>
+        <button data-v="medium">Средняя<small>посложнее</small></button>
+        <button data-v="hard">Сложная<small>абстракции</small></button>
+        <button data-v="mix">Микс<small>всё сразу</small></button>
+      </div>
+      <div class="toggle">
+        <div>Генератор фраз<small>«Ленивый пингвин», «Летающий холодильник»…</small></div>
+        <label class="sw"><input type="checkbox" id="gen"><span></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Время раунда</h3>
+      <div class="seg c4" id="time">
+        <button data-v="30">30 с</button>
+        <button data-v="60">60 с</button>
+        <button data-v="90">90 с</button>
+        <button data-v="120">2 мин</button>
+      </div>
+      <h3 style="margin-top:16px">Кругов</h3>
+      <div class="seg c4" id="rounds">
+        <button data-v="1">1</button>
+        <button data-v="2">2</button>
+        <button data-v="3">3</button>
+        <button data-v="5">5</button>
+      </div>
+      <div class="toggle">
+        <div>Штраф за пропуск<small>−1 очко за каждое пропущенное слово</small></div>
+        <label class="sw"><input type="checkbox" id="pen"><span></span></label>
+      </div>
+    </div>
+
+    <button class="btn" id="start">Начать игру</button>
+    <p class="hint center">Свайп вверх — угадали (+1). Свайп вниз — пропустить.<br>Можно также стрелками ↑ ↓ на клавиатуре.</p>
+  </section>
+
+  <!-- ── READY (pass the phone) ──────────────── -->
+  <section id="ready" class="screen center">
+    <div class="hint" id="rinfo"></div>
+    <div class="turn-av" id="rav"></div>
+    <h2 class="turn-name" id="rname"></h2>
+    <div class="turn-sub">Возьми телефон. Остальные — не подглядывайте!</div>
+    <div class="howto">
+      <div class="up"><b>↑</b>Свайп вверх<br>угадали</div>
+      <div class="dn"><b>↓</b>Свайп вниз<br>пропустить</div>
+    </div>
+    <button class="btn" id="go">Я готов!</button>
+    <button class="btn sec" id="rscore">Таблица очков</button>
+  </section>
+
+  <!-- ── ROUND SUMMARY ───────────────────────── -->
+  <section id="summary" class="screen">
+    <div class="center hint" id="sname"></div>
+    <div class="big" id="spts"></div>
+    <p class="hint center" style="margin-bottom:14px">Нажми на слово, чтобы исправить результат</p>
+    <div class="wlist" id="wlist"></div>
+    <button class="btn" id="snext">Дальше</button>
+  </section>
+
+  <!-- ── SCOREBOARD ──────────────────────────── -->
+  <section id="board" class="screen">
+    <div class="trophy" id="btrophy"></div>
+    <h2 class="center" id="btitle" style="font-size:20px;margin:10px 0 16px"></h2>
+    <div id="blist"></div>
+    <div style="height:10px"></div>
+    <button class="btn" id="bmain"></button>
+    <button class="btn sec" id="bsetup">В меню</button>
+  </section>
+</div>
+
+<!-- ── PLAY (fullscreen) ─────────────────────── -->
+<section id="play">
+  <div class="hud">
+    <div class="who" id="pwho"></div>
+    <div class="sc"><span class="ok" id="pok">0</span> · <span class="no" id="pno">0</span></div>
+  </div>
+  <div class="timer" id="ptime">60</div>
+  <div class="bar"><i id="pbar"></i></div>
+  <div class="zone" id="zone">
+    <div class="lbl top" id="ltop">↑ УГАДАЛИ</div>
+    <div class="word-card" id="wcard">
+      <span class="last">ПОСЛЕДНЕЕ СЛОВО</span>
+      <span class="lvl" id="wlvl"></span>
+      <div class="w" id="wtext"></div>
+    </div>
+    <div class="lbl bot" id="lbot">↓ ПРОПУСК</div>
+  </div>
+  <div class="btns">
+    <button class="skip" id="bskip">↓ Пропуск</button>
+    <button class="ok" id="bok">↑ Угадали</button>
+  </div>
+  <div class="countdown" id="cd" hidden></div>
+</section>
+<div class="flash" id="flash"></div>
+
+<script>
+// ── WORDS ────────────────────────────────────────────────────────
+const WORDS = {
+  easy: `кошка собака слон жираф крокодил обезьяна змея лягушка курица корова лошадь заяц медведь пингвин рыба птица
+бабочка паук пчела черепаха мяч машина самолёт поезд велосипед лодка дом дерево цветок солнце луна дождь снег
+зонт телефон часы очки шапка шарф перчатки ботинки стул стол кровать лампа телевизор холодильник чайник ложка вилка
+нож тарелка чашка банан яблоко арбуз морковь торт мороженое пицца суп хлеб сыр яйцо книга карандаш ручка ножницы
+рюкзак гитара барабан пианино скрипка труба камера ключ замок дверь окно лестница зеркало расчёска зубная_щётка мыло
+полотенце ванна душ подушка одеяло ракета звезда облако радуга гора море пляж остров корабль якорь рыбак повар врач
+пожарный полицейский клоун фокусник король принцесса пират робот призрак дракон снеговик ёлка подарок шарик свеча
+футбол теннис бокс плавание бег прыжок танец сон храп чихать плакать смеяться спать есть пить читать писать рисовать
+петь звонить фотографировать молоток пила утюг пылесос`,
+  medium: `парашют акваланг скейтборд батут карусель палатка костёр рыбалка охота сёрфинг балет фигурное_катание хоккей
+бильярд боулинг шахматы домино пазл фейерверк маскарад свадьба день_рождения выпускной экзамен будильник лифт
+эскалатор светофор шлагбаум турникет банкомат кассир официант парикмахер стоматолог водолаз космонавт пилот
+стюардесса дирижёр скульптор архитектор садовник почтальон таксист библиотекарь археолог детектив шпион ниндзя
+ковбой викинг рыцарь мумия вампир зомби оборотень русалка единорог гном циркач жонглёр канатоходец дрессировщик
+укротитель_тигров зебра кенгуру осьминог дельфин акула кит страус павлин фламинго хамелеон ленивец ёж бобр скунс
+енот летучая_мышь комар таракан улитка вулкан водопад пустыня джунгли айсберг пещера маяк мельница небоскрёб
+пирамида замок_из_песка колесо_обозрения американские_горки бассейн сауна каток цирк зоопарк музей театр кинотеатр
+стадион аэропорт вокзал больница аптека супермаркет блинчики шашлык суши попкорн сахарная_вата жвачка лимон
+кукуруза вентилятор микроволновка стиральная_машина кондиционер принтер ноутбук наушники селфи пульт джойстик
+магнит компас бинокль телескоп микроскоп глобус калькулятор градусник шприц пластырь костыли гипс`,
+  hard: `ностальгия вдохновение зависть ревность совесть одиночество дружба предательство интуиция лень терпение
+ответственность справедливость демократия инфляция бюрократия гравитация эволюция вечность бесконечность тишина
+эхо невесомость дежавю бессонница похмелье мигрень аллергия икота амнезия гипноз телепатия медитация йога
+сарказм ирония комплимент сплетня интрига сюрприз импровизация вдохновение конкуренция реклама экономия кредит
+ипотека налог зарплата отпуск понедельник дедлайн прокрастинация выгорание карьера пенсия аукцион биржа
+криптовалюта блокчейн искусственный_интеллект виртуальная_реальность голосовое_сообщение автоответчик спам пароль
+вирус антивирус обновление загрузка подписка лайк хештег мем стрим блогер инфлюенсер подкаст фотосинтез
+испарение землетрясение цунами северное_сияние солнечное_затмение чёрная_дыра большой_взрыв глобальное_потепление
+переработка_мусора рассвет закат полнолуние эхолокация мираж радуга_после_дождя первая_любовь кризис_среднего_возраста
+медовый_месяц бабье_лето день_сурка кот_в_мешке медвежья_услуга яблоко_раздора ахиллесова_пята троянский_конь
+последняя_капля белая_ворона тёмная_лошадка вешать_лапшу_на_уши бить_баклуши водить_за_нос`,
+};
+for (const k in WORDS) {
+  WORDS[k] = [...new Set(WORDS[k].split(/\s+/).filter(Boolean).map(w => w.replace(/_/g, ' ')))];
+}
+
+// Phrase generator: adjective + noun, agreed by gender
+const GEN = {
+  adj: [ // [masc, fem, neut]
+    ['ленивый','ленивая','ленивое'], ['летающий','летающая','летающее'], ['танцующий','танцующая','танцующее'],
+    ['сердитый','сердитая','сердитое'], ['сонный','сонная','сонное'], ['испуганный','испуганная','испуганное'],
+    ['влюблённый','влюблённая','влюблённое'], ['голодный','голодная','голодное'], ['поющий','поющая','поющее'],
+    ['невидимый','невидимая','невидимое'], ['гигантский','гигантская','гигантское'], ['крошечный','крошечная','крошечное'],
+    ['замёрзший','замёрзшая','замёрзшее'], ['пьяный','пьяная','пьяное'], ['гордый','гордая','гордое'],
+    ['стеснительный','стеснительная','стеснительное'], ['бегущий','бегущая','бегущее'], ['плачущий','плачущая','плачущее'],
+    ['волшебный','волшебная','волшебное'], ['старый','старая','старое'], ['мокрый','мокрая','мокрое'],
+    ['злой','злая','злое'], ['весёлый','весёлая','весёлое'], ['уставший','уставшая','уставшее'],
+  ],
+  noun: [ // [word, gender 0=m 1=f 2=n]
+    ['пингвин',0],['холодильник',0],['дракон',0],['кот',0],['робот',0],['динозавр',0],['пылесос',0],['повар',0],
+    ['вампир',0],['слон',0],['чайник',0],['жираф',0],['дед мороз',0],['космонавт',0],['ёжик',0],['таксист',0],
+    ['бабушка',1],['балерина',1],['корова',1],['черепаха',1],['принцесса',1],['обезьяна',1],['курица',1],
+    ['мумия',1],['улитка',1],['русалка',1],['стиральная машина',1],['ведьма',1],['лягушка',1],['учительница',1],
+    ['облако',2],['яйцо',2],['пианино',2],['дерево',2],['привидение',2],['солнце',2],['мороженое',2],['кресло',2],
+  ],
+};
+function genPhrase() {
+  const [n, g] = GEN.noun[Math.random() * GEN.noun.length | 0];
+  const a = GEN.adj[Math.random() * GEN.adj.length | 0][g];
+  return a + ' ' + n;
+}
+
+const DIFF_LABEL = { easy:'лёгкое', medium:'среднее', hard:'сложное', gen:'фраза' };
+const AVATARS = ['🐊','🦊','🐼','🐸','🦁','🐯','🐨','🐵','🦄','🐙','🐧','🦉','🐻','🐰','🐲','🦖'];
+
+// ── STATE ────────────────────────────────────────────────────────
+const LS_KEY = 'croc.settings.v1';
+const S = {
+  players: [],          // {name, avatar, score}
+  diff: 'medium', time: 60, rounds: 3, penalty: false, gen: false,
+};
+try { Object.assign(S, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch {}
+S.players.forEach(p => p.score = 0);
+
+const G = { turn: 0, deck: [], used: new Set(), log: [], left: 0, timer: null, final: false, busy: false };
+
+function save() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({
+      players: S.players.map(({name, avatar}) => ({name, avatar})),
+      diff: S.diff, time: S.time, rounds: S.rounds, penalty: S.penalty, gen: S.gen,
+    }));
+  } catch {}
+}
+
+const $ = id => document.getElementById(id);
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('play').classList.toggle('on', id === 'play');
+  window.scrollTo(0, 0);
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ── SETUP UI ─────────────────────────────────────────────────────
+function renderPlayers() {
+  $('plist').innerHTML = S.players.map((p, i) => `
+    <div class="pitem"><span class="av">${p.avatar}</span><span class="nm">${esc(p.name)}</span>
+    <button data-i="${i}" aria-label="Удалить">×</button></div>`).join('')
+    || '<div class="hint">Добавь минимум 2 игрока или команды</div>';
+}
+$('plist').onclick = e => {
+  const i = e.target.dataset?.i;
+  if (i === undefined) return;
+  S.players.splice(+i, 1); renderPlayers(); save();
+};
+function addPlayer() {
+  const name = $('pname').value.trim();
+  $('perr').textContent = '';
+  if (!name) return;
+  if (S.players.some(p => p.name.toLowerCase() === name.toLowerCase())) { $('perr').textContent = 'Такое имя уже есть'; return; }
+  if (S.players.length >= 16) { $('perr').textContent = 'Максимум 16 игроков'; return; }
+  const used = new Set(S.players.map(p => p.avatar));
+  const avatar = AVATARS.find(a => !used.has(a)) || '🙂';
+  S.players.push({ name, avatar, score: 0 });
+  $('pname').value = ''; $('pname').focus();
+  renderPlayers(); save();
+}
+$('padd').onclick = addPlayer;
+$('pname').onkeydown = e => { if (e.key === 'Enter') addPlayer(); };
+
+function bindSeg(id, key, num) {
+  const el = $(id);
+  const sync = () => el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v == S[key]));
+  el.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    S[key] = num ? +b.dataset.v : b.dataset.v; sync(); save();
+  };
+  sync();
+}
+bindSeg('diff', 'diff'); bindSeg('time', 'time', true); bindSeg('rounds', 'rounds', true);
+$('pen').checked = S.penalty; $('pen').onchange = e => { S.penalty = e.target.checked; save(); };
+$('gen').checked = S.gen;     $('gen').onchange = e => { S.gen = e.target.checked; save(); };
+renderPlayers();
+
+// ── DECK ─────────────────────────────────────────────────────────
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function buildDeck() {
+  const lv = S.diff === 'mix' ? ['easy', 'medium', 'hard'] : [S.diff];
+  const deck = [];
+  lv.forEach(l => WORDS[l].forEach(w => { if (!G.used.has(w)) deck.push({ w, l }); }));
+  if (deck.length < 20) { G.used.clear(); return buildDeck(); }   // pool exhausted → start over
+  G.deck = shuffle(deck);
+}
+function nextWord() {
+  // ~25% generated phrases when the generator is on
+  if (S.gen && Math.random() < 0.25) {
+    let p, tries = 0;
+    do { p = genPhrase(); } while (G.used.has(p) && ++tries < 30);
+    G.used.add(p);
+    return { w: p, l: 'gen' };
+  }
+  if (!G.deck.length) buildDeck();
+  const c = G.deck.pop(); G.used.add(c.w); return c;
+}
+
+// ── GAME FLOW ────────────────────────────────────────────────────
+const totalTurns = () => S.players.length * S.rounds;
+const cur = () => S.players[G.turn % S.players.length];
+
+$('start').onclick = () => {
+  if (S.players.length < 2) { $('perr').textContent = 'Нужно минимум 2 игрока'; $('pname').focus(); return; }
+  S.players.forEach(p => p.score = 0);
+  G.turn = 0; G.used.clear(); buildDeck();
+  unlockAudio();
+  showReady();
+};
+
+function showReady() {
+  const p = cur();
+  $('rinfo').textContent = `Круг ${Math.floor(G.turn / S.players.length) + 1} из ${S.rounds} · ход ${G.turn % S.players.length + 1}/${S.players.length}`;
+  $('rav').textContent = p.avatar;
+  $('rname').textContent = p.name;
+  show('ready');
+}
+$('rscore').onclick = () => showBoard(false);
+$('go').onclick = startTurn;
+
+function startTurn() {
+  G.log = []; G.left = S.time; G.final = false; G.busy = false;
+  $('pwho').textContent = cur().avatar + ' ' + cur().name;
+  updHud(); updTimer();
+  $('wcard').classList.remove('final');
+  $('wtext').textContent = ''; $('wlvl').textContent = '';
+  show('play');
+  // 3-2-1 countdown
+  const cd = $('cd'); let n = 3;
+  cd.hidden = false; cd.textContent = n; beep(520, .08);
+  const t = setInterval(() => {
+    n--;
+    if (n > 0) { cd.textContent = n; beep(520, .08); return; }
+    clearInterval(t); cd.hidden = true; beep(880, .15);
+    dealCard();
+    G.timer = setInterval(tick, 1000);
+  }, 800);
+  G.cdTimer = t;
+}
+
+function tick() {
+  G.left--;
+  updTimer();
+  if (G.left <= 5 && G.left > 0) beep(700, .05);
+  if (G.left <= 0) {
+    clearInterval(G.timer); G.timer = null;
+    beep(300, .5); vibrate([200, 100, 200]);
+    // the word on screen can still be answered — "last word"
+    G.final = true;
+    $('wcard').classList.add('final');
+  }
+}
+function updTimer() {
+  const t = Math.max(0, G.left);
+  $('ptime').textContent = t;
+  $('ptime').classList.toggle('low', t <= 10);
+  $('pbar').style.width = (t / S.time * 100) + '%';
+}
+function updHud() {
+  $('pok').textContent = G.log.filter(x => x.ok).length;
+  $('pno').textContent = G.log.filter(x => !x.ok).length;
+}
+
+let card = null;
+function dealCard() {
+  card = nextWord();
+  const el = $('wcard');
+  el.classList.remove('anim');
+  el.style.transform = 'translateY(0) scale(.9)'; el.style.opacity = '0';
+  $('wtext').textContent = card.w;
+  $('wlvl').textContent = DIFF_LABEL[card.l];
+  requestAnimationFrame(() => {
+    el.classList.add('anim');
+    el.style.transform = ''; el.style.opacity = '';
+    G.busy = false;
+  });
+}
+
+function answer(ok) {
+  if (!card || G.busy || !$('play').classList.contains('on') || !$('cd').hidden) return;
+  G.busy = true;
+  G.log.push({ w: card.w, ok });
+  updHud();
+  ok ? (beep(990, .1), vibrate(40)) : (beep(220, .12), vibrate([30, 40, 30]));
+  flash(ok ? 'g' : 'r');
+  const el = $('wcard');
+  el.classList.add('anim');
+  el.style.transform = `translateY(${ok ? -120 : 120}vh) rotate(${ok ? -6 : 6}deg)`;
+  el.style.opacity = '0';
+  card = null;
+  setTimeout(() => {
+    if (G.final) endTurn();
+    else dealCard();
+  }, 230);
+}
+
+function flash(c) {
+  const f = $('flash'); f.className = 'flash ' + c + ' on';
+  requestAnimationFrame(() => requestAnimationFrame(() => f.classList.remove('on')));
+}
+
+function endTurn() {
+  clearInterval(G.timer); clearInterval(G.cdTimer); G.timer = null;
+  renderSummary();
+  show('summary');
+}
+
+function turnPoints() {
+  const ok = G.log.filter(x => x.ok).length, no = G.log.length - ok;
+  return ok - (S.penalty ? no : 0);
+}
+function renderSummary() {
+  const p = cur(), pts = turnPoints();
+  $('sname').textContent = `${p.avatar} ${p.name} — результат хода`;
+  $('spts').textContent = (pts > 0 ? '+' : '') + pts;
+  $('wlist').innerHTML = G.log.map((x, i) => `
+    <div class="witem ${x.ok ? 'ok' : 'no'}" data-i="${i}">
+      <span class="ic">${x.ok ? '✓' : '✗'}</span><span class="tx">${esc(x.w)}</span>
+    </div>`).join('') || '<div class="hint center">Ни одного слова 🙈</div>';
+}
+$('wlist').onclick = e => {
+  const it = e.target.closest('.witem'); if (!it) return;
+  const x = G.log[+it.dataset.i]; x.ok = !x.ok;
+  renderSummary();
+};
+$('snext').onclick = () => {
+  cur().score += turnPoints();
+  G.turn++;
+  if (G.turn >= totalTurns()) showBoard(true);
+  else showBoard(false, true);
+};
+
+// ── SCOREBOARD ───────────────────────────────────────────────────
+function showBoard(final, afterTurn) {
+  const sorted = [...S.players].sort((a, b) => b.score - a.score);
+  const top = sorted[0].score;
+  const winners = sorted.filter(p => p.score === top);
+  $('btrophy').textContent = final ? '🏆' : '📊';
+  $('btitle').textContent = final
+    ? (winners.length > 1 ? 'Ничья! ' + winners.map(w => w.name).join(' и ') : 'Победил ' + winners[0].name + '!')
+    : 'Таблица очков';
+  let place = 0, prev = null;
+  $('blist').innerHTML = sorted.map((p, i) => {
+    if (p.score !== prev) { place = i + 1; prev = p.score; }
+    return `<div class="srow ${final && p.score === top ? 'lead' : ''}">
+      <span class="pl">${place}</span><span>${p.avatar}</span>
+      <span class="nm">${esc(p.name)}</span><span class="pt">${p.score}</span></div>`;
+  }).join('');
+  $('bmain').textContent = final ? 'Сыграть ещё раз' : (afterTurn ? 'Следующий ход: ' + cur().name : 'Назад');
+  $('bmain').onclick = final ? () => $('start').onclick() : showReady;
+  if (final) beep(660, .15), setTimeout(() => beep(880, .25), 160);
+  show('board');
+}
+$('bsetup').onclick = () => {
+  if (G.turn > 0 && G.turn < totalTurns() && !confirm('Выйти в меню? Текущая игра будет сброшена.')) return;
+  show('setup');
+};
+
+// ── SWIPE ────────────────────────────────────────────────────────
+(function swipe() {
+  const zone = $('zone'), el = $('wcard');
+  const TH = 70;
+  let y0 = null, t0 = 0, dy = 0, pid = null;
+  zone.addEventListener('pointerdown', e => {
+    if (!card || G.busy) return;
+    pid = e.pointerId; y0 = e.clientY; t0 = performance.now(); dy = 0;
+    zone.setPointerCapture(pid);
+    el.classList.remove('anim');
+  });
+  zone.addEventListener('pointermove', e => {
+    if (e.pointerId !== pid || y0 === null) return;
+    dy = e.clientY - y0;
+    el.style.transform = `translateY(${dy}px) rotate(${dy / 40}deg)`;
+    el.style.borderColor = dy < -TH ? 'var(--g)' : dy > TH ? 'var(--a2)' : '';
+    $('ltop').classList.toggle('hot', dy < -TH);
+    $('lbot').classList.toggle('hot', dy > TH);
+  });
+  const end = e => {
+    if (e.pointerId !== pid || y0 === null) return;
+    const v = dy / Math.max(1, performance.now() - t0);   // px/ms — quick flicks count too
+    y0 = null; pid = null;
+    el.style.borderColor = '';
+    $('ltop').classList.remove('hot'); $('lbot').classList.remove('hot');
+    if (dy < -TH || (v < -0.6 && dy < -25)) answer(true);
+    else if (dy > TH || (v > 0.6 && dy > 25)) answer(false);
+    else { el.classList.add('anim'); el.style.transform = ''; }
+  };
+  zone.addEventListener('pointerup', end);
+  zone.addEventListener('pointercancel', end);
+})();
+$('bok').onclick = () => answer(true);
+$('bskip').onclick = () => answer(false);
+document.addEventListener('keydown', e => {
+  if (!$('play').classList.contains('on')) return;
+  if (e.key === 'ArrowUp' || e.key === ' ') { e.preventDefault(); answer(true); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); answer(false); }
+});
+
+// ── FEEDBACK ─────────────────────────────────────────────────────
+let actx = null;
+function unlockAudio() {
+  try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch {}
+}
+function beep(f, d) {
+  if (!actx) return;
+  try {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.frequency.value = f; o.type = 'sine';
+    g.gain.setValueAtTime(.15, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, actx.currentTime + d);
+    o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + d);
+  } catch {}
+}
+function vibrate(p) { try { navigator.vibrate?.(p); } catch {} }
+</script>
+</body>
+</html>

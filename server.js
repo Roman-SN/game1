@@ -14,6 +14,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: res => res.setHeader('Cache-Control', 'no-store'),
 }));
 app.use(express.json());
+app.get('/crocodile', (req, res) => res.sendFile(path.join(__dirname, 'public', 'crocodile.html')));
 
 const rooms = {};
 
