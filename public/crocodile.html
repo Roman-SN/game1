@@ -39,6 +39,8 @@ input:focus{border-color:var(--a)}
 .seg{display:grid;gap:6px}
 .seg.c4{grid-template-columns:repeat(4,1fr)}
 .seg.c3{grid-template-columns:repeat(3,1fr)}
+.seg.c2{grid-template-columns:1fr 1fr}
+.seg.c2 button{padding:12px 6px;font-size:14px}
 .seg button{background:var(--s2);border:1px solid var(--b);border-radius:10px;color:var(--t);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:10px 4px;transition:all .15s}
 .seg button small{display:block;color:var(--m);font-weight:400;font-size:10px;margin-top:2px}
 .seg button.on{background:var(--a);border-color:var(--a);color:#0f0f13}
@@ -86,6 +88,11 @@ input:focus{border-color:var(--a)}
 .word-card.anim{transition:transform .25s ease,opacity .25s ease,border-color .2s}
 .word-card .w{font-family:'Unbounded','Arial Black',sans-serif;font-size:clamp(26px,9vw,42px);text-align:center;line-height:1.15;word-break:break-word;hyphens:auto}
 .word-card .lvl{position:absolute;top:12px;right:14px;font-size:11px;color:var(--m)}
+.word-card .task{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;padding:7px 14px;border-radius:100px;margin-bottom:18px;letter-spacing:.4px}
+.word-card .task.show{background:#163a26;color:var(--g)}
+.word-card .task.talk{background:#3a3010;color:var(--a)}
+.mode-rules{margin-bottom:18px;font-size:14px;line-height:1.5;text-align:left}
+.witem .md{font-size:15px}
 .word-card .last{position:absolute;top:12px;left:14px;font-size:11px;color:var(--a2);font-weight:700;display:none}
 .word-card.final .last{display:block}
 .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
@@ -126,7 +133,7 @@ input:focus{border-color:var(--a)}
     <div class="logo">
       <div class="em">🐊</div>
       <h1>КРОКОДИЛ</h1>
-      <p>Покажи слово без слов — за минуту</p>
+      <p>Покажи или объясни слово — за минуту</p>
     </div>
 
     <div class="card">
@@ -137,6 +144,15 @@ input:focus{border-color:var(--a)}
         <button class="btn sm" id="padd">＋</button>
       </div>
       <div class="err" id="perr"></div>
+    </div>
+
+    <div class="card">
+      <h3>Режим игры</h3>
+      <div class="seg c2" id="mode">
+        <button data-v="show">🐊 Крокодил<small>только показывать</small></button>
+        <button data-v="mixed">🎭 Смешанный<small>показать или объяснить</small></button>
+      </div>
+      <p class="hint" id="modehint" style="margin-top:10px"></p>
     </div>
 
     <div class="card">
@@ -184,6 +200,7 @@ input:focus{border-color:var(--a)}
     <div class="turn-av" id="rav"></div>
     <h2 class="turn-name" id="rname"></h2>
     <div class="turn-sub">Возьми телефон. Остальные — не подглядывайте!</div>
+    <div class="card mode-rules" id="rrules"></div>
     <div class="howto">
       <div class="up"><b>↑</b>Свайп вверх<br>угадали</div>
       <div class="dn"><b>↓</b>Свайп вниз<br>пропустить</div>
@@ -225,6 +242,7 @@ input:focus{border-color:var(--a)}
     <div class="word-card" id="wcard">
       <span class="last">ПОСЛЕДНЕЕ СЛОВО</span>
       <span class="lvl" id="wlvl"></span>
+      <span class="task" id="wtask" hidden></span>
       <div class="w" id="wtext"></div>
     </div>
     <div class="lbl bot" id="lbot">↓ ПРОПУСК</div>
@@ -302,6 +320,13 @@ function genPhrase() {
   return a + ' ' + n;
 }
 
+const MODES = {
+  show:  { rules: '🤐 <b>Только жесты и мимика.</b> Говорить, издавать звуки и показывать буквы нельзя.',
+           hint:  'Классика: слово можно только показывать — без слов и звуков.' },
+  mixed: { rules: 'На каждой карточке написано, что делать:<br>🤐 <b>ПОКАЖИ</b> — только жесты, без звуков.<br>🗣 <b>ОБЪЯСНИ</b> — словами, но без однокоренных слов и перевода.',
+           hint:  'Каждое слово случайно: его нужно либо показать жестами, либо объяснить словами.' },
+};
+const TASK = { show: '🤐 ПОКАЖИ', talk: '🗣 ОБЪЯСНИ' };
 const DIFF_LABEL = { easy:'лёгкое', medium:'среднее', hard:'сложное', gen:'фраза' };
 const AVATARS = ['🐊','🦊','🐼','🐸','🦁','🐯','🐨','🐵','🦄','🐙','🐧','🦉','🐻','🐰','🐲','🦖'];
 
@@ -309,18 +334,18 @@ const AVATARS = ['🐊','🦊','🐼','🐸','🦁','🐯','🐨','🐵','🦄',
 const LS_KEY = 'croc.settings.v1';
 const S = {
   players: [],          // {name, avatar, score}
-  diff: 'medium', time: 60, rounds: 3, penalty: false, gen: false,
+  mode: 'show', diff: 'medium', time: 60, rounds: 3, penalty: false, gen: false,
 };
 try { Object.assign(S, JSON.parse(localStorage.getItem(LS_KEY) || '{}')); } catch {}
 S.players.forEach(p => p.score = 0);
 
-const G = { turn: 0, deck: [], used: new Set(), log: [], left: 0, timer: null, final: false, busy: false };
+const G = { tasks: [], turn: 0, deck: [], used: new Set(), log: [], left: 0, timer: null, final: false, busy: false };
 
 function save() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify({
       players: S.players.map(({name, avatar}) => ({name, avatar})),
-      diff: S.diff, time: S.time, rounds: S.rounds, penalty: S.penalty, gen: S.gen,
+      mode: S.mode, diff: S.diff, time: S.time, rounds: S.rounds, penalty: S.penalty, gen: S.gen,
     }));
   } catch {}
 }
@@ -360,15 +385,16 @@ function addPlayer() {
 $('padd').onclick = addPlayer;
 $('pname').onkeydown = e => { if (e.key === 'Enter') addPlayer(); };
 
-function bindSeg(id, key, num) {
+function bindSeg(id, key, num, onChange) {
   const el = $(id);
-  const sync = () => el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v == S[key]));
+  const sync = () => { el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v == S[key])); onChange?.(); };
   el.onclick = e => {
     const b = e.target.closest('button'); if (!b) return;
     S[key] = num ? +b.dataset.v : b.dataset.v; sync(); save();
   };
   sync();
 }
+bindSeg('mode', 'mode', false, () => $('modehint').textContent = MODES[S.mode].hint);
 bindSeg('diff', 'diff'); bindSeg('time', 'time', true); bindSeg('rounds', 'rounds', true);
 $('pen').checked = S.penalty; $('pen').onchange = e => { S.penalty = e.target.checked; save(); };
 $('gen').checked = S.gen;     $('gen').onchange = e => { S.gen = e.target.checked; save(); };
@@ -395,6 +421,15 @@ function nextWord() {
   const c = G.deck.pop(); G.used.add(c.w); return c;
 }
 
+// Mixed mode: random show/explain, but never 3 of the same in a row
+function nextTask() {
+  if (S.mode !== 'mixed') return 'show';
+  const [a, b] = G.tasks.slice(-2);
+  const t = a && a === b ? (a === 'show' ? 'talk' : 'show') : (Math.random() < .5 ? 'show' : 'talk');
+  G.tasks.push(t);
+  return t;
+}
+
 // ── GAME FLOW ────────────────────────────────────────────────────
 const totalTurns = () => S.players.length * S.rounds;
 const cur = () => S.players[G.turn % S.players.length];
@@ -412,13 +447,14 @@ function showReady() {
   $('rinfo').textContent = `Круг ${Math.floor(G.turn / S.players.length) + 1} из ${S.rounds} · ход ${G.turn % S.players.length + 1}/${S.players.length}`;
   $('rav').textContent = p.avatar;
   $('rname').textContent = p.name;
+  $('rrules').innerHTML = MODES[S.mode].rules;
   show('ready');
 }
 $('rscore').onclick = () => showBoard(false);
 $('go').onclick = startTurn;
 
 function startTurn() {
-  G.log = []; G.left = S.time; G.final = false; G.busy = false;
+  G.log = []; G.tasks = []; G.left = S.time; G.final = false; G.busy = false;
   $('pwho').textContent = cur().avatar + ' ' + cur().name;
   updHud(); updTimer();
   $('wcard').classList.remove('final');
@@ -468,6 +504,11 @@ function dealCard() {
   el.style.transform = 'translateY(0) scale(.9)'; el.style.opacity = '0';
   $('wtext').textContent = card.w;
   $('wlvl').textContent = DIFF_LABEL[card.l];
+  card.t = nextTask();
+  const task = $('wtask');
+  task.hidden = S.mode !== 'mixed';
+  task.className = 'task ' + card.t;
+  task.textContent = TASK[card.t];
   requestAnimationFrame(() => {
     el.classList.add('anim');
     el.style.transform = ''; el.style.opacity = '';
@@ -478,7 +519,7 @@ function dealCard() {
 function answer(ok) {
   if (!card || G.busy || !$('play').classList.contains('on') || !$('cd').hidden) return;
   G.busy = true;
-  G.log.push({ w: card.w, ok });
+  G.log.push({ w: card.w, t: card.t, ok });
   updHud();
   ok ? (beep(990, .1), vibrate(40)) : (beep(220, .12), vibrate([30, 40, 30]));
   flash(ok ? 'g' : 'r');
@@ -514,7 +555,7 @@ function renderSummary() {
   $('spts').textContent = (pts > 0 ? '+' : '') + pts;
   $('wlist').innerHTML = G.log.map((x, i) => `
     <div class="witem ${x.ok ? 'ok' : 'no'}" data-i="${i}">
-      <span class="ic">${x.ok ? '✓' : '✗'}</span><span class="tx">${esc(x.w)}</span>
+      <span class="ic">${x.ok ? '✓' : '✗'}</span><span class="tx">${esc(x.w)}</span>${S.mode === 'mixed' ? `<span class="md" title="${TASK[x.t]}">${x.t === 'show' ? '🤐' : '🗣'}</span>` : ''}
     </div>`).join('') || '<div class="hint center">Ни одного слова 🙈</div>';
 }
 $('wlist').onclick = e => {
