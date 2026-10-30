@@ -1,0 +1,10 @@
+{
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/", "destination": "/crocodile.html" },
+    { "source": "/crocodile", "destination": "/crocodile.html" }
+  ]
+}
