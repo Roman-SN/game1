@@ -1,10 +1,9 @@
 {
-  "buildCommand": "",
-  "installCommand": "",
-  "outputDirectory": "public",
   "framework": null,
+  "installCommand": "echo skip",
+  "buildCommand": "rm -rf dist && mkdir dist && cp public/crocodile.html dist/index.html && cp public/crocodile.html dist/crocodile.html",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/", "destination": "/crocodile.html" },
     { "source": "/crocodile", "destination": "/crocodile.html" }
   ]
 }
